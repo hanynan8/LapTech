@@ -1209,7 +1209,7 @@ export default async function ProductDetailsPage({ params }) {
       window.addEventListener('load', function onLoad() {
         window.removeEventListener('load', onLoad);
         setTimeout(initGallery, 50);
-      });
+      });ش
     }
 
   } catch (e) {

@@ -1,5 +1,33 @@
 "use client"
 
+// app/products/[slug]/page.tsx
+
+// export const metadata = {
+//   title: 'ASUS ROG Strix G15 - لابتوب جيمينج Ryzen 7 | TechLap',
+//   description: 'اكتشف ASUS ROG Strix G15 بمعالج Ryzen 7 وشاشة 144Hz وأداء قوي بسعر رائع. تسوق الآن من TechLap.',
+//   openGraph: {
+//     type: 'product',
+//     url: 'https://lap-tech-five.vercel.app/products/asus-rog-strix-g15',
+//     title: 'ASUS ROG Strix G15 - لابتوب جيمينج Ryzen 7 | TechLap',
+//     description: 'اكتشف ASUS ROG Strix G15 بمعالج Ryzen 7 وشاشة 144Hz وأداء قوي بسعر رائع.',
+//     images: [
+//       {
+//         url: 'https://lap-tech-five.vercel.app/images/asus-rog-g15.jpg',
+//         width: 1200,
+//         height: 630,
+//         alt: 'ASUS ROG Strix G15'
+//       }
+//     ]
+//   },
+//   twitter: {
+//     card: 'summary_large_image',
+//     title: 'ASUS ROG Strix G15 - لابتوب جيمينج Ryzen 7 | TechLap',
+//     description: 'اكتشف ASUS ROG Strix G15 بمعالج Ryzen 7 وشاشة 144Hz وأداء قوي بسعر رائع.',
+//     images: ['https://lap-tech-five.vercel.app/images/asus-rog-g15.jpg']
+//   }
+// };
+
+
 import React, { useState, useEffect } from 'react';
 import { Users,  Loader, Target, Award, Heart, Star, ChevronRight, Eye, Lightbulb, Shield, Rocket, Globe, TrendingUp, Laptop, Truck, Package, Play, Check, ArrowRight, Clock, MapPin, Phone, Mail, MessageCircle, Calendar, Zap } from 'lucide-react';
 

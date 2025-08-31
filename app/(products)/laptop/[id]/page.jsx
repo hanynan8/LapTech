@@ -1,4 +1,3 @@
-'use client';
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -10,7 +9,7 @@ export default async function ProductDetailsPage({ params }) {
   async function fetchLaptopById(id) {
     const res = await fetch(
       `https://restaurant-back-end.vercel.app/api/data?collection=laptop&id=${id}`,
-      { next: { revalidate: 60 } }
+      { next: { revalidate: 600 } }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -24,7 +23,7 @@ export default async function ProductDetailsPage({ params }) {
       if (Array.isArray(laptop?.details?.relatedProducts) && laptop.details.relatedProducts.length > 0) {
         const relatedPromises = laptop.details.relatedProducts.map(id => 
           fetch(`https://restaurant-back-end.vercel.app/api/data?collection=laptop&id=${id}`, 
-                { next: { revalidate: 60 } })
+                { next: { revalidate: 600 } })
             .then(res => res.ok ? res.json() : null)
             .catch(() => null)
         );
@@ -40,7 +39,7 @@ export default async function ProductDetailsPage({ params }) {
       // إذا لم نحصل على عدد كافٍ، نجلب منتجات من نفس الفئة
       const categoryRes = await fetch(
         `https://restaurant-back-end.vercel.app/api/data?collection=laptop&category=${encodeURIComponent(laptop.category)}&limit=12`,
-        { next: { revalidate: 60 } }
+        { next: { revalidate: 600 } }
       );
       
       if (categoryRes.ok) {

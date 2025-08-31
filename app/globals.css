@@ -2,3 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Scrollbar Styles ===== */
+html {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #6b21a8 #f1f5f9; /* المقبض (بنفسجي) والخلفية (رمادي فاتح) */
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9; /* نفس bg-slate-50 */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b21a8, #2563eb); /* بنفسجي لأزرق */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #7c3aed, #3b82f6); /* تدرج أفتح عند المرور */
+}

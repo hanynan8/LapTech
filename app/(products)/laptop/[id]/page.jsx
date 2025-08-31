@@ -1,100 +1,292 @@
-
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
-export default async function ProductDetailsPage({ params }) {
-  // جلب المنتج حسب id
-  async function fetchLaptopById(id) {
-    const res = await fetch(
-      `https://restaurant-back-end.vercel.app/api/data?collection=laptop&id=${id}`,
-      { next: { revalidate: 600 } }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data) && data.length > 0 ? data[0] : data || null;
-  }
-
-  // جلب المنتجات ذات الصلة (فقط عند الحاجة) - نفس منطق الكود الأول
+// Server Component للمنتجات المشابهة
+async function RelatedProducts({ laptop }) {
+  // جلب المنتجات ذات الصلة مع تحسينات الأداء
   async function fetchRelatedProducts(laptop) {
     try {
+      const promises = [];
+      let relatedProducts = [];
+
       // إذا كان المنتج يحتوي على relatedProducts IDs محددة
       if (Array.isArray(laptop?.details?.relatedProducts) && laptop.details.relatedProducts.length > 0) {
-        const relatedPromises = laptop.details.relatedProducts.map(id => 
-          fetch(`https://restaurant-back-end.vercel.app/api/data?collection=laptop&id=${id}`, 
-                { next: { revalidate: 600 } })
-            .then(res => res.ok ? res.json() : null)
-            .catch(() => null)
-        );
+        const relatedPromises = laptop.details.relatedProducts.slice(0, 8).map(async (id) => {
+          try {
+            const res = await fetch(
+              `https://restaurant-back-end.vercel.app/api/data?collection=laptop&id=${id}`,
+              { 
+                next: { revalidate: 3600 }, // تحسين مدة التخزين المؤقت
+                signal: AbortSignal.timeout(5000) // إضافة timeout
+              }
+            );
+            if (!res.ok) return null;
+            const data = await res.json();
+            return Array.isArray(data) && data.length > 0 ? data[0] : data;
+          } catch {
+            return null;
+          }
+        });
         
-        const relatedResults = await Promise.all(relatedPromises);
-        const validRelated = relatedResults.filter(product => product && product.id !== laptop.id);
-        
-        if (validRelated.length >= 8) {
-          return validRelated.slice(0, 8);
-        }
+        const relatedResults = await Promise.allSettled(relatedPromises);
+        relatedProducts = relatedResults
+          .filter(result => result.status === 'fulfilled' && result.value)
+          .map(result => result.value)
+          .filter(product => product && product.id !== laptop.id)
+          .slice(0, 8);
       }
       
       // إذا لم نحصل على عدد كافٍ، نجلب منتجات من نفس الفئة
-      const categoryRes = await fetch(
-        `https://restaurant-back-end.vercel.app/api/data?collection=laptop&category=${encodeURIComponent(laptop.category)}&limit=12`,
-        { next: { revalidate: 600 } }
-      );
-      
-      if (categoryRes.ok) {
-        const categoryData = await categoryRes.json();
-        let categoryProducts = [];
-        
-        // معالجة البيانات حسب البنية المتوقعة
-        if (Array.isArray(categoryData) && categoryData.length > 0 && categoryData[0].products) {
-          categoryProducts = categoryData[0].products;
-        } else if (Array.isArray(categoryData)) {
-          categoryProducts = categoryData;
+      if (relatedProducts.length < 4 && laptop.category) {
+        try {
+          const categoryRes = await fetch(
+            `https://restaurant-back-end.vercel.app/api/data?collection=laptop&category=${encodeURIComponent(laptop.category)}&limit=12`,
+            { 
+              next: { revalidate: 1800 }, // تقليل مدة التخزين المؤقت للفئات
+              signal: AbortSignal.timeout(5000)
+            }
+          );
+          
+          if (categoryRes.ok) {
+            const categoryData = await categoryRes.json();
+            let categoryProducts = [];
+            
+            if (Array.isArray(categoryData) && categoryData.length > 0 && categoryData[0].products) {
+              categoryProducts = categoryData[0].products;
+            } else if (Array.isArray(categoryData)) {
+              categoryProducts = categoryData;
+            }
+            
+            const additionalProducts = categoryProducts
+              .filter(product => product.id !== laptop.id)
+              .slice(0, 8 - relatedProducts.length);
+            
+            relatedProducts = [...relatedProducts, ...additionalProducts];
+          }
+        } catch (error) {
+          console.error('خطأ في جلب منتجات الفئة:', error);
         }
-        
-        // فلترة المنتج الحالي
-        return categoryProducts.filter(product => product.id !== laptop.id).slice(0, 8);
       }
       
-      return [];
+      return relatedProducts.slice(0, 8);
     } catch (error) {
       console.error('خطأ في جلب المنتجات ذات الصلة:', error);
       return [];
     }
   }
 
+  const relatedProducts = await fetchRelatedProducts(laptop);
+
+  if (relatedProducts.length === 0) return null;
+
+  return (
+    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {relatedProducts.map((product, index) => (
+          <Link 
+            key={`related-${product.id}-${index}`} 
+            href={`/laptop/${product.id}`} 
+            className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
+            prefetch={false} // تحسين الأداء
+          >
+            <div className="relative mb-4">
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-40 object-contain"
+                loading="lazy"
+                decoding="async"
+              />
+              {product.discount && (
+                <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  -{product.discount}%
+                </span>
+              )}
+            </div>
+            
+            <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
+              {product.name}
+            </h3>
+            
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xl font-bold text-purple-600">
+                {formatPrice(product.price)} {product.currency || 'ج.م'}
+              </div>
+              {product.rating && (
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400 text-sm">★</span>
+                  <span className="text-sm text-gray-600">{product.rating}</span>
+                </div>
+              )}
+            </div>
+            
+            {product.originalPrice && (
+              <div className="text-sm text-gray-500 line-through">
+                {formatPrice(product.originalPrice)} {product.currency || 'ج.م'}
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Server Component للمواصفات التقنية
+function TechnicalSpecs({ specs }) {
+  if (!specs || Object.keys(specs).length === 0) return null;
+
+  const specLabels = {
+    cpu: 'المعالج',
+    gpu: 'كارت الرسوميات', 
+    ram: 'الذاكرة العشوائية',
+    storage: 'وحدة التخزين',
+    display: 'الشاشة',
+    resolution: 'دقة الشاشة',
+    battery: 'البطارية',
+    os: 'نظام التشغيل',
+    weight: 'الوزن',
+    dimensions_mm: 'الأبعاد',
+    ports: 'المنافذ'
+  };
+
+  const validSpecs = Object.entries(specs).filter(([key, value]) => 
+    value && value !== '—' && value !== 'غير محدد'
+  );
+
+  if (validSpecs.length === 0) return null;
+
+  return (
+    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
+      
+      <div className="info-grid">
+        {validSpecs.map(([key, value]) => (
+          <div key={key} className="spec-card card-hover">
+            <h4 className="font-bold text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
+              {specLabels[key] || key}
+            </h4>
+            <div className="text-gray-700">
+              {Array.isArray(value) ? (
+                <ul className="space-y-2">
+                  {value.map((item, idx) => (
+                    <li key={`spec-item-${idx}`} className="flex items-start gap-2">
+                      <span className="w-1 h-1 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                      <span className="leading-relaxed">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="leading-relaxed">{String(value)}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Server Component للمراجعات
+function ReviewsSection({ reviews }) {
+  if (!reviews || !reviews.count || reviews.count === 0) return null;
+
+  return (
+    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">آراء العملاء</h2>
+        <div className="flex items-center justify-center gap-4">
+          <div className="flex text-yellow-400 text-2xl">
+            {[...Array(5)].map((_, i) => (
+              <span key={`star-${i}`}>{i < Math.floor(reviews.avgRating) ? '★' : '☆'}</span>
+            ))}
+          </div>
+          <span className="text-2xl font-bold text-gray-900">{reviews.avgRating}</span>
+          <span className="text-gray-600">({reviews.count} مراجعة)</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {reviews.items?.slice(0, 6).map((review, index) => (
+          <div key={`review-${review.user}-${index}`} className="review-card rounded-xl p-6 card-hover">
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-bold text-lg text-purple-700">{review.user}</div>
+              <div className="flex text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <span key={`review-star-${i}`}>{i < review.rating ? '★' : '☆'}</span>
+                ))}
+              </div>
+            </div>
+            <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
+            <div className="text-sm text-gray-500">{formatDate(review.date)}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// دالة مساعدة منفصلة لتنسيق السعر (خارج الكومبوننت)
+function formatPrice(num) {
+  if (num == null) return '—';
+  try {
+    return new Intl.NumberFormat('ar-EG').format(num);
+  } catch {
+    return String(num);
+  }
+}
+
+// دالة مساعدة لتنسيق التاريخ
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ar-EG', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+export default async function ProductDetailsPage({ params }) {
+
+  const resolvedParams = await params;
+
+  // جلب المنتج الرئيسي مع تحسينات
+  async function fetchLaptopById(id) {
+    try {
+      const res = await fetch(
+        `https://restaurant-back-end.vercel.app/api/data?collection=laptop&id=${id}`,
+        { 
+          next: { revalidate: 3600 }, // تحسين مدة التخزين المؤقت
+          signal: AbortSignal.timeout(8000) // timeout أطول للبيانات المهمة
+        }
+      );
+      
+      if (!res.ok) return null;
+      
+      const data = await res.json();
+      return Array.isArray(data) && data.length > 0 ? data[0] : data || null;
+    } catch (error) {
+      console.error('خطأ في جلب بيانات المنتج:', error);
+      return null;
+    }
+  }
+
   // جلب المنتج الرئيسي
-  const laptop = await fetchLaptopById(params.id);
+  const laptop = await fetchLaptopById(resolvedParams.id);
   if (!laptop) notFound();
 
-  // جلب المنتجات ذات الصلة بشكل متوازي (غير مُحجِّم)
-  const relatedProductsPromise = fetchRelatedProducts(laptop);
-
-  function formatDate(dateStr) {
-    if (!dateStr) return '—';
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-    } catch {
-      return dateStr;
-    }
-  }
-
-  function formatPrice(num) {
-    if (num == null) return '—';
-    try {
-      return new Intl.NumberFormat('ar-EG').format(num);
-    } catch {
-      return String(num);
-    }
-  }
-
-  // الحصول على المواصفات
+  // استخراج المواصفات
   const specs = laptop.details?.detailedSpecs || laptop.specs || {};
-
-  // انتظار المنتجات ذات الصلة
-  const relatedProducts = await relatedProductsPromise;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white" dir="rtl">
@@ -212,12 +404,19 @@ export default async function ProductDetailsPage({ params }) {
           border: 1px solid #e5e7eb;
           border-right: 4px solid #8b5cf6;
         }
+        
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         
         {/* Header Section */}
-        <div className="bg-white rounded-3xl shadow-lg overflow-hidden mb-8 fade-in">
+        <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-8 fade-in">
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 p-8">
             
             {/* صور المنتج */}
@@ -229,6 +428,8 @@ export default async function ProductDetailsPage({ params }) {
                     src={laptop.image || laptop.details?.gallery?.[0] || ''}
                     alt={laptop.name}
                     className="w-full h-80 object-contain"
+                    loading="eager"
+                    decoding="sync"
                   />
                   {laptop.badge && (
                     <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -246,11 +447,13 @@ export default async function ProductDetailsPage({ params }) {
                 {Array.isArray(laptop.details?.gallery) && laptop.details.gallery.length > 0 && (
                   <div className="grid grid-cols-4 gap-3">
                     {laptop.details.gallery.slice(0, 4).map((src, i) => (
-                      <a key={i} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover">
+                      <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover relative">
                         <img 
                           src={src} 
                           alt={`${laptop.name} ${i + 1}`} 
-                          className="w-full h-16 object-cover rounded-lg" 
+                          className="w-full h-16 object-cover rounded-lg"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </a>
                     ))}
@@ -258,7 +461,7 @@ export default async function ProductDetailsPage({ params }) {
                 )}
 
                 {/* معلومات سريعة */}
-                <div className="bg-gray-50 rounded-2xl p-6 mt-6">
+                <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
                   <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
@@ -282,7 +485,7 @@ export default async function ProductDetailsPage({ params }) {
                       <span className="font-medium text-gray-900">{formatDate(laptop.details?.releaseDate)}</span>
                     </div>
                   </div>
-                </div>
+                </aside>
               </div>
             </div>
 
@@ -299,7 +502,7 @@ export default async function ProductDetailsPage({ params }) {
                     <div className="flex items-center gap-1">
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                          <span key={i} className="text-sm">
+                          <span key={`product-star-${i}`} className="text-sm">
                             {i < Math.floor(laptop.rating) ? '★' : '☆'}
                           </span>
                         ))}
@@ -331,7 +534,7 @@ export default async function ProductDetailsPage({ params }) {
                   { label: 'التخزين', value: laptop.specs?.storage || specs.storage, color: 'bg-purple-50 text-purple-700' },
                   { label: 'الرسوميات', value: laptop.specs?.graphics || specs.gpu, color: 'bg-orange-50 text-orange-700' }
                 ].map((item, i) => (
-                  <div key={i} className={`p-4 rounded-xl ${item.color}`}>
+                  <div key={`quick-spec-${i}`} className={`p-4 rounded-xl ${item.color}`}>
                     <div className="text-sm font-semibold mb-1">{item.label}</div>
                     <div className="text-xs font-medium truncate" title={item.value}>
                       {item.value || '—'}
@@ -364,7 +567,7 @@ export default async function ProductDetailsPage({ params }) {
                   <h3 className="text-xl font-bold text-gray-900 mb-4">الميزات الرئيسية</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {laptop.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl">
+                      <div key={`feature-${index}`} className="flex items-center gap-3 p-3 bg-white rounded-xl">
                         <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
                         <span className="text-gray-700 font-medium">{feature}</span>
                       </div>
@@ -374,159 +577,54 @@ export default async function ProductDetailsPage({ params }) {
               )}
             </div>
           </div>
-        </div>
+        </header>
 
         {/* المواصفات التقنية */}
-        {specs && Object.keys(specs).length > 0 && (
-          <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
-            
-            <div className="info-grid">
-              {Object.entries(specs).map(([key, value]) => {
-                if (!value || value === '—' || value === 'غير محدد') return null;
-                
-                let displayKey = key;
-                switch(key) {
-                  case 'cpu': displayKey = 'المعالج'; break;
-                  case 'gpu': displayKey = 'كارت الرسوميات'; break;
-                  case 'ram': displayKey = 'الذاكرة العشوائية'; break;
-                  case 'storage': displayKey = 'وحدة التخزين'; break;
-                  case 'display': displayKey = 'الشاشة'; break;
-                  case 'resolution': displayKey = 'دقة الشاشة'; break;
-                  case 'battery': displayKey = 'البطارية'; break;
-                  case 'os': displayKey = 'نظام التشغيل'; break;
-                  case 'weight': displayKey = 'الوزن'; break;
-                  case 'dimensions_mm': displayKey = 'الأبعاد'; break;
-                  case 'ports': displayKey = 'المنافذ'; break;
-                }
-
-                return (
-                  <div key={key} className="spec-card card-hover">
-                    <h4 className="font-bold text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
-                      {displayKey}
-                    </h4>
-                    <div className="text-gray-700">
-                      {Array.isArray(value) ? (
-                        <ul className="space-y-2">
-                          {value.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <span className="w-1 h-1 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
-                              <span className="leading-relaxed">{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="leading-relaxed">{String(value)}</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <TechnicalSpecs specs={specs} />
 
         {/* المراجعات */}
-        {laptop.details?.reviews && laptop.details.reviews.count > 0 && (
+        <ReviewsSection reviews={laptop.details?.reviews} />
+
+        {/* منتجات ذات صلة مع Suspense لتحسين الأداء */}
+        <Suspense fallback={
           <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">آراء العملاء</h2>
-              <div className="flex items-center justify-center gap-4">
-                <div className="flex text-yellow-400 text-2xl">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i}>{i < Math.floor(laptop.details.reviews.avgRating) ? '★' : '☆'}</span>
+            <div className="text-center">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-8"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                      <div className="bg-gray-200 h-40 rounded-xl mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    </div>
                   ))}
                 </div>
-                <span className="text-2xl font-bold text-gray-900">{laptop.details.reviews.avgRating}</span>
-                <span className="text-gray-600">({laptop.details.reviews.count} مراجعة)</span>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {laptop.details.reviews.items?.slice(0, 6).map((review, index) => (
-                <div key={index} className="review-card rounded-xl p-6 card-hover">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-bold text-lg text-purple-700">{review.user}</div>
-                    <div className="flex text-yellow-400">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i}>{i < review.rating ? '★' : '☆'}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
-                  <div className="text-sm text-gray-500">{formatDate(review.date)}</div>
-                </div>
-              ))}
-            </div>
           </div>
-        )}
-
-        {/* منتجات ذات صلة */}
-        {relatedProducts.length > 0 && (
-          <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {relatedProducts.slice(0, 8).map((product) => (
-                <Link key={product.id} href={`/laptop/${product.id}`} className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200">
-                  <div className="relative mb-4">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className="w-full h-40 object-contain" 
-                    />
-                    {product.discount && (
-                      <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                        -{product.discount}%
-                      </span>
-                    )}
-                  </div>
-                  
-                  <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
-                    {product.name}
-                  </h3>
-                  
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xl font-bold text-purple-600">
-                      {formatPrice(product.price)} {product.currency || 'ج.م'}
-                    </div>
-                    {product.rating && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-yellow-400 text-sm">★</span>
-                        <span className="text-sm text-gray-600">{product.rating}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {product.originalPrice && (
-                    <div className="text-sm text-gray-500 line-through">
-                      {formatPrice(product.originalPrice)} {product.currency || 'ج.م'}
-                    </div>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        }>
+          <RelatedProducts laptop={laptop} />
+        </Suspense>
 
         {/* الملحقات */}
         {Array.isArray(laptop.details?.accessories) && laptop.details.accessories.length > 0 && (
-          <div className="bg-white rounded-3xl shadow-lg p-8 fade-in">
+          <section className="bg-white rounded-3xl shadow-lg p-8 fade-in">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">الملحقات المقترحة</h3>
             <div className="flex flex-wrap gap-3">
               {laptop.details.accessories.map((accessory, index) => (
-                <span key={index} className="px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200">
+                <span key={`accessory-${index}`} className="px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200">
                   {accessory}
                 </span>
               ))}
             </div>
-          </div>
+          </section>
         )}
       </div>
 
       {/* معرض الصور */}
       {Array.isArray(laptop.details?.gallery) && laptop.details.gallery.map((src, i) => (
-        <div key={`lightbox-${i}`} id={`img-${i}`} className="lightbox">
+        <div key={`lightbox-img-${i}`} id={`img-${i}`} className="lightbox">
           <a href="#" className="absolute inset-0" aria-label="إغلاق"></a>
           
           <div className="lightbox-content">
@@ -534,7 +632,13 @@ export default async function ProductDetailsPage({ params }) {
               <a href={`#img-${i-1}`} className="lightbox-nav lightbox-prev" aria-label="الصورة السابقة">❮</a>
             )}
             
-            <img src={src} alt={`${laptop.name} ${i + 1}`} />
+            <img 
+              src={src} 
+              alt={`${laptop.name} ${i + 1}`} 
+              className="max-h-80vh w-auto max-w-full rounded-lg shadow-lg"
+              loading="lazy"
+              decoding="async"
+            />
             
             {i < laptop.details.gallery.length - 1 && (
               <a href={`#img-${i+1}`} className="lightbox-nav lightbox-next" aria-label="الصورة التالية">❯</a>

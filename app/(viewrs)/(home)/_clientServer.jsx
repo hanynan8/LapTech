@@ -42,8 +42,6 @@ const ProductCard = ({ product, categoryKey }) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Add to cart logic here
-    console.log('Added to cart:', product);
     
     // Show success feedback
     const button = e.target.closest('button');

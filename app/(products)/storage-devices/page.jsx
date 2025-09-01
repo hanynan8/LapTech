@@ -13,7 +13,6 @@ async function getStorageData() {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        cache: 'force-cache', // Cache for performance
         next: { revalidate: 86000 }, // Revalidate every hour
       }
     );
@@ -162,10 +161,19 @@ function LoadingSkeleton() {
 
 // Metadata for SEO
 export const metadata = {
-  title: 'وسائط التخزين - أقراص صلبة، SSD، فلاش ميموري',
+  title: 'وسائط التخزين',
   description: 'تسوق أفضل وسائط التخزين بأسعار مميزة. أقراص صلبة، SSD، فلاش ميموري، بطاقات ذاكرة وأكثر',
-  keywords: 'وسائط تخزين, أقراص صلبة, SSD, فلاش ميموري, بطاقات ذاكرة',
+  keywords: ['وسائط تخزين', 'أقراص صلبة', 'SSD', 'فلاش ميموري', 'بطاقات ذاكرة', 'Hard Drive', 'Storage Devices', 'External SSD', 'USB Drive', 'Memory Card', 'Portable Storage', 'Data Storage'],
+    openGraph: {
+    url: 'https://lap-tech-five.vercel.app/storage-devices',
+    title: 'وسائط التخزين',
+    description: 'تسوق أفضل وسائط التخزين بأسعار مميزة. أقراص صلبة، SSD، فلاش ميموري، بطاقات ذاكرة وأكثر',
+    type: 'website'
+  }
 };
+
+
+
 
 export default async function StorageDevicesPage() {
   // Server-side data fetching

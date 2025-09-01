@@ -4,7 +4,7 @@ import POSClient from './_posClient';
 export const metadata = {
   title: 'أنظمة نقاط البيع - POS Systems',
   description: 'اكتشف أفضل أنظمة نقاط البيع والحاسبات المكتبية لنشاطك التجاري. أنظمة متطورة وموثوقة لإدارة المبيعات والمخزون',
-  keywords: 'نقاط البيع, POS, حاسبات مكتبية, أنظمة الدفع, إدارة المبيعات, كاشير',
+  keywords: ['نقاط البيع', 'POS', 'حاسبات مكتبية', 'أنظمة الدفع', 'إدارة المبيعات', 'كاشير'],
   openGraph: {
     title: 'أنظمة نقاط البيع - POS Systems',
     description: 'اكتشف أفضل أنظمة نقاط البيع والحاسبات المكتبية لنشاطك التجاري',
@@ -12,7 +12,7 @@ export const metadata = {
     locale: 'ar_EG',
     images: [
       {
-        url: '/images/pos-systems-og.jpg',
+        url: 'https://lap-tech-five.vercel.app/images/pos-systems-og.jpg',
         width: 1200,
         height: 630,
         alt: 'أنظمة نقاط البيع',
@@ -23,7 +23,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'أنظمة نقاط البيع - POS Systems',
     description: 'اكتشف أفضل أنظمة نقاط البيع والحاسبات المكتبية لنشاطك التجاري',
-    images: ['/images/pos-systems-twitter.jpg'],
+    images: ['https://lap-tech-five.vercel.app/images/pos-systems-twitter.jpg'],
   },
   robots: {
     index: true,
@@ -59,9 +59,9 @@ async function fetchPOSData() {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        next: { 
-          revalidate: 86000, // إعادة التحقق كل ساعة
-          tags: ['pos-data'] // للتحكم في إعادة التحديث
+        next: {
+          revalidate: 86400, // تحديث كل 24 ساعة (ISR يومي)
+          tags: ['pos-data'], // للتحكم في إعادة التحديث (optional)
         },
       }
     );
@@ -73,7 +73,10 @@ async function fetchPOSData() {
     }
 
     const apiData = await response.json();
-    console.log('البيانات المستلمة من API:', apiData);
+
+    // أثناء التطوير فقط اطبع اللوجز
+    if (process.env.NODE_ENV !== 'production') {
+    }
 
     // البحث عن بيانات نقاط البيع
     let posData = null;
@@ -123,7 +126,7 @@ async function fetchPOSData() {
           name: 'الاكسسوارات',
           icon: 'gamepad2',
           color: 'from-purple-600 to-pink-600',
-        }
+        },
       ],
       filters: posData.filters || {
         sortOptions: [
@@ -133,7 +136,7 @@ async function fetchPOSData() {
           { value: 'rating', label: 'التقييم' },
           { value: 'performance', label: 'الأداء' },
           { value: 'newest', label: 'الأحدث' },
-          { value: 'popular', label: 'الأكثر شعبية' },
+          { value: 'popular', label: 'الأكثر شهرة' },
         ],
         priceRanges: [
           { min: 0, max: 10000, label: 'أقل من 10,000 جنيه' },
@@ -142,12 +145,15 @@ async function fetchPOSData() {
           { min: 50000, max: 100000, label: '50,000 - 100,000 جنيه' },
           { min: 100000, max: Infinity, label: 'أكثر من 100,000 جنيه' },
         ],
-        brands: [
-          'HP', 'Dell', 'Lenovo', 'ASUS', 'Acer', 'MSI', 'Samsung', 'LG'
-        ],
+        brands: ['HP', 'Dell', 'Lenovo', 'ASUS', 'Acer', 'MSI', 'Samsung', 'LG'],
         features: [
-          'شاشة لمس', 'واي فاي', 'بلوتوث', 'كاميرا', 'طابعة حرارية', 'قارئ باركود'
-        ]
+          'شاشة لمس',
+          'واي فاي',
+          'بلوتوث',
+          'كاميرا',
+          'طابعة حرارية',
+          'قارئ باركود',
+        ],
       },
       products: posData.products || [],
       totalCount: posData.products?.length || 0,
@@ -156,10 +162,12 @@ async function fetchPOSData() {
 
     return { data: processedData, error: null };
   } catch (err) {
-    console.error('خطأ في جلب البيانات:', err);
-    return { 
-      data: null, 
-      error: `فشل في تحميل البيانات: ${err.message}` 
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('خطأ في جلب البيانات:', err);
+    }
+    return {
+      data: null,
+      error: `فشل في تحميل البيانات: ${err.message}`,
     };
   }
 }
@@ -173,11 +181,11 @@ function generateJSONLD(data) {
     '@type': 'CollectionPage',
     name: data.pageTitle,
     description: data.pageSubtitle,
-    url: 'https://yoursite.com/pos',
+    url: 'https://lap-tech-five.vercel.app/pos',
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: data.totalCount,
-      itemListElement: data.products.slice(0, 10).map((product, index) => ({
+      itemListElement: (data.products || []).slice(0, 10).map((product, index) => ({
         '@type': 'Product',
         position: index + 1,
         name: product.name,
@@ -185,17 +193,22 @@ function generateJSONLD(data) {
         description: product.description || product.name,
         offers: {
           '@type': 'Offer',
-          price: product.price,
-          priceCurrency: 'EGP',
-          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          price: product.price ?? undefined,
+          priceCurrency: product.currency || 'EGP',
+          availability:
+            product.inStock || product.availability === 'متوفر'
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
         },
-        aggregateRating: product.rating ? {
-          '@type': 'AggregateRating',
-          ratingValue: product.rating,
-          ratingCount: product.reviewCount || 1,
-          bestRating: 5,
-          worstRating: 1,
-        } : undefined,
+        aggregateRating: product.rating
+          ? {
+              '@type': 'AggregateRating',
+              ratingValue: product.rating,
+              ratingCount: product.reviewCount || 1,
+              bestRating: 5,
+              worstRating: 1,
+            }
+          : undefined,
         brand: {
           '@type': 'Brand',
           name: product.brand || 'POS Systems',
@@ -209,13 +222,13 @@ function generateJSONLD(data) {
           '@type': 'ListItem',
           position: 1,
           name: 'الرئيسية',
-          item: 'https://yoursite.com',
+          item: 'https://lap-tech-five.vercel.app',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'أنظمة نقاط البيع',
-          item: 'https://yoursite.com/pos',
+          item: 'https://lap-tech-five.vercel.app/pos',
         },
       ],
     },
@@ -239,7 +252,7 @@ export default async function POSPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      
+
       {/* مكون العميل */}
       <POSClient initialData={data} error={error} />
     </>

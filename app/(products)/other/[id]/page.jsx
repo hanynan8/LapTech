@@ -4,6 +4,44 @@ import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
+
+
+  // دالة إنشاء الصفحات الثابتة للمنتجات
+export async function generateStaticParams() {
+  try {
+    const res = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=other', {
+      next: { revalidate: false }
+    });
+    
+    if (!res.ok) return [];
+    
+    const data = await res.json();
+    let products = [];
+    
+    if (Array.isArray(data)) {
+      products = data.filter(item => item.id);
+      data.forEach(item => {
+        if (item.products && Array.isArray(item.products)) {
+          products = [...products, ...item.products.filter(p => p.id)];
+        }
+      });
+    } else if (data.products && Array.isArray(data.products)) {
+      products = data.products.filter(product => product.id);
+    }
+    
+    return products.map((product) => ({
+      id: product.id.toString()
+    }));
+    
+  } catch (error) {
+    console.error('خطأ في generateStaticParams:', error);
+    return [];
+  }
+}
+
+
+
+
 // Server Component للمنتجات المشابهة
 async function RelatedProducts({ product }) {
   // جلب المنتجات ذات الصلة مع تحسينات الأداء

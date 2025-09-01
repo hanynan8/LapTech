@@ -31,9 +31,8 @@ const MonitorsPage = async () => {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        cache: 'no-cache', // أو يمكن استخدام revalidate: 3600 للتحديث كل ساعة
         next: {
-          revalidate: 60, // إعادة التحقق كل دقيقة
+          revalidate: 86000, // إعادة التحقق كل دقيقة
         },
       }
     );

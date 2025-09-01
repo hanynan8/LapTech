@@ -21,7 +21,6 @@ export const metadata = {
 
 // دالة تحويل بيانات API (Moved to server)
 const transformApiData = (apiData) => {
-  console.log('Raw API Data:', apiData);
 
   // الوصول الصحيح لبيانات الاكسسوارات
   let accessoriesData = null;
@@ -30,7 +29,6 @@ const transformApiData = (apiData) => {
   // البحث عن بيانات الاكسسوارات في هيكل API
   if (apiData && apiData.accessories && Array.isArray(apiData.accessories)) {
     accessoriesData = apiData.accessories[0]; // أخذ العنصر الأول
-    console.log('Accessories Data Found:', accessoriesData);
 
     if (
       accessoriesData &&
@@ -41,11 +39,9 @@ const transformApiData = (apiData) => {
     }
   }
 
-  console.log('Products found:', allProducts.length, allProducts);
 
   // في حالة عدم وجود منتجات، استخدم بيانات تجريبية
   if (allProducts.length === 0) {
-    console.log('No products found, using fallback data');
     allProducts = getFallbackProducts();
   }
 
@@ -93,7 +89,6 @@ const transformApiData = (apiData) => {
     };
   });
 
-  console.log('Transformed Products:', transformedProducts);
 
   return {
     pageTitle: accessoriesData?.pageTitle || 'عالم الاكسسوارات التقنية',
@@ -219,7 +214,6 @@ export default async function AccessoriesPage() {
     const apiData = await response.json();
     data = transformApiData(apiData);
   } catch (err) {
-    console.error('Error loading data on server:', err);
     error = err.message;
     // استخدام البيانات الافتراضية في حال الخطأ
     data = {

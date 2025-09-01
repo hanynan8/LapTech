@@ -32,7 +32,6 @@ const OtherProductsPage = async () => {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        cache: 'no-cache',
         next: {
           revalidate: 86000, // إعادة التحقق كل دقيقة
         },

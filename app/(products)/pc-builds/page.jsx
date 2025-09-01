@@ -107,9 +107,8 @@ const PCBuildsPage = async () => {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        cache: 'no-cache',
         next: {
-          revalidate: 60, // إعادة التحقق كل دقيقة
+          revalidate: 86000, // إعادة التحقق كل دقيقة
         },
       }
     );
@@ -211,6 +210,8 @@ const PCBuildsPage = async () => {
         id: product.id || `build-${index}`,
         image: product.image || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400',
         rating: product.rating || (4.0 + Math.random() * 1.0),
+        reviewsCount: product.reviewsCount || Math.floor(Math.random() * 100) + 50,
+          
         specs: {
           processor: 'Intel Core i5',
           graphics: 'RTX 4060',

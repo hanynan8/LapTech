@@ -1,200 +1,266 @@
-// app/laptop/_lapClient.js (Client Component)
+// app/accessories/_accessoriesClient.js (Client Component)
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Laptop, Cpu, HardDrive, MonitorSpeaker, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
+import {
+  Search,
+  Filter,
+  Star,
+  ShoppingCart,
+  Heart,
+  Eye,
+  ArrowRight,
+  Laptop,
+  Cpu,
+  HardDrive,
+  MonitorSpeaker,
+  ChevronLeft,
+  ChevronRight,
+  Headphones,
+  Mouse,
+  Keyboard,
+  Cable,
+  Camera,
+  Gamepad2,
+  Watch,
+  Smartphone
+} from 'lucide-react';
 import Link from 'next/link';
 
-// Product Card Component محسن للأداء
-const ProductCard = React.memo(({ product, favorites, toggleFavorite, index }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const cardRef = useRef();
+// دالة WhatsApp المحدثة مع معلومات المنتج
+function goToWatssap(product = null, phoneNumber = '+201201061216') {
+  let message = 'السلام عليكم ورحمة الله وبركاته\n';
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '100px 0px' // تحميل مبكر أكثر
-      }
-    );
+  if (product) {
+    // رسالة مع معلومات المنتج
+    message += `أريد الاستفسار عن هذا المنتج:\n\n`;
+    message += `📱 *${product.name}*\n\n`;
 
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
+    // المواصفات
+    if (product.specs) {
+      message += `📋 *المواصفات:*\n`;
+      Object.entries(product.specs).forEach(([key, value]) => {
+        message += `🔧 ${key}: ${value}\n`;
+      });
+      message += `\n`;
     }
 
-    return () => {
+    // السعر
+    message += `💰 *السعر:* ${
+      typeof product.price === 'number'
+        ? product.price.toLocaleString()
+        : product.price
+    } ${product.currency || 'ر.س'}`;
+
+    if (product.originalPrice && product.discount) {
+      message += `\n🔥 *خصم ${product.discount}%* من ${
+        typeof product.originalPrice === 'number'
+          ? product.originalPrice.toLocaleString()
+          : product.originalPrice
+      } ${product.currency || 'ر.س'}`;
+    }
+
+    message += `\n\n⭐ *التقييم:* ${product.rating}/5\n\n`;
+
+    // صورة المنتج (رابط)
+    if (product.image) {
+      message += `🖼️ *صورة المنتج:*\n${product.image}\n\n`;
+    }
+
+    message += `🛒 أرغب في الحصول على مزيد من التفاصيل والطلب\n`;
+    message += `📞 يرجى التواصل معي في أقرب وقت ممكن`;
+  } else {
+    // رسالة عامة
+    message += 'أريد الاستفسار عن منتجاتكم\n';
+    message += 'يرجى التواصل معي للمساعدة في اختيار المنتج المناسب';
+  }
+
+  // تشفير الرسالة للـ URL
+  const encodedMessage = encodeURIComponent(message);
+
+  // فتح WhatsApp مع الرسالة
+  window.open(`https://wa.me/${phoneNumber.replace('+', '')}?text=${encodedMessage}`);
+}
+
+// Product Card Component محسن للأداء
+const ProductCard = React.memo(
+  ({ product, favorites, toggleFavorite, index, whatsappNumber }) => {
+    const [isVisible, setIsVisible] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const cardRef = useRef();
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setIsVisible(true);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.1,
+          rootMargin: '100px 0px',
+        }
+      );
+
       if (cardRef.current) {
-        observer.unobserve(cardRef.current);
+        observer.observe(cardRef.current);
       }
-    };
-  }, []);
 
-  return (
-    <div
-      ref={cardRef}
-      className={`transition-all duration-500 ease-out transform ${
-        isVisible 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 translate-y-4'
-      }`}
-      style={{ 
-        transitionDelay: `${Math.min(index * 50, 300)}ms` // حد أقصى 300ms
-      }}
-    >
-      <Link href={`/laptop/${product.id}`} className="group block">
-        <div className="bg-white rounded-3xl overflow-hidden shadow-lg group-hover:shadow-2xl transform group-hover:scale-105 transition-all duration-300">
-          {/* Product Image */}
-          <div className="relative overflow-hidden bg-gray-100">
-            {/* Skeleton loader */}
-            {!imageLoaded && isVisible && (
-              <div className="w-full h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
-            )}
-            
-            {isVisible && (
-              <img
-                src={product.image}
-                alt={product.name}
-                loading="lazy"
-                onLoad={() => setImageLoaded(true)}
-                className={`w-full h-48 object-cover group-hover:scale-110 transition-all duration-700 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
-                }`}
-              />
-            )}
+      return () => {
+        if (cardRef.current) {
+          observer.unobserve(cardRef.current);
+        }
+      };
+    }, []);
 
-            {/* Badges */}
-            <div className="absolute top-4 right-4">
-              {product.badge && (
-                <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                  {product.badge}
-                </span>
+    return (
+      <div
+        ref={cardRef}
+        className={`transition-all duration-500 ease-out transform ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+        style={{
+          transitionDelay: `${Math.min(index * 50, 300)}ms`,
+        }}
+      >
+        <Link href={`/accessories/${product.id}`} className="group block">
+          <div className="bg-white rounded-3xl overflow-hidden shadow-lg group-hover:shadow-2xl transform group-hover:scale-105 transition-all duration-300">
+            {/* Product Image */}
+            <div className="relative overflow-hidden bg-gray-100">
+              {/* Skeleton loader */}
+              {!imageLoaded && isVisible && (
+                <div className="w-full h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
+              )}
+
+              {isVisible && (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  loading="lazy"
+                  onLoad={() => setImageLoaded(true)}
+                  className={`w-full h-48 object-cover group-hover:scale-110 transition-all duration-700 ${
+                    imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
+                  }`}
+                />
+              )}
+
+              {/* Badges */}
+              <div className="absolute top-4 right-4">
+                {product.badge && (
+                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                    {product.badge}
+                  </span>
+                )}
+              </div>
+
+              {product.discount && (
+                <div className="absolute top-4 left-4">
+                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                    خصم {product.discount}%
+                  </span>
+                </div>
               )}
             </div>
 
-            {product.discount && (
-              <div className="absolute top-4 left-4">
-                <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                  خصم {product.discount}%
+            {/* Product Info */}
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors duration-300">
+                {product.name}
+              </h3>
+
+              {/* Rating */}
+              <div className="flex items-center mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 transition-colors duration-200 ${
+                      i < Math.floor(product.rating)
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+                <span className="text-gray-600 text-sm mr-2">
+                  ({product.rating})
                 </span>
               </div>
-            )}
 
-            {/* Action Buttons */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  toggleFavorite(product.id); 
-                }}
-                className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
-                  favorites.includes(product.id)
-                    ? 'bg-red-500 text-white shadow-lg'
-                    : 'bg-white/90 text-gray-700 hover:bg-white'
-                }`}
-              >
-                <Heart className={`w-5 h-5 transition-all duration-300 ${
-                  favorites.includes(product.id) ? 'fill-current scale-110' : ''
-                }`} />
-              </button>
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                }}
-                className="p-3 bg-white/90 text-gray-700 rounded-full hover:bg-white transition-all duration-300 transform hover:scale-110"
-              >
-                <Eye className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Product Info */}
-          <div className="p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors duration-300">
-              {product.name}
-            </h3>
-
-            {/* Rating */}
-            <div className="flex items-center mb-3">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 transition-colors duration-200 ${
-                    i < Math.floor(product.rating) 
-                      ? 'text-yellow-400 fill-current' 
-                      : 'text-gray-300'
-                  }`}
-                />
-              ))}
-              <span className="text-gray-600 text-sm mr-2">({product.rating})</span>
-            </div>
-
-            {/* Specs */}
-            {product.specs && (
-              <div className="space-y-1 text-xs text-gray-600 mb-4">
-                <div className="flex justify-between">
-                  <span>المعالج:</span>
-                  <span className="font-medium">{product.specs.processor}</span>
+              {/* Specs */}
+              {product.specs && (
+                <div className="space-y-1 text-xs text-gray-600 mb-4">
+                  {Object.entries(product.specs).slice(0, 3).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span>{key}:</span>
+                      <span className="font-medium">{value}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between">
-                  <span>الذاكرة:</span>
-                  <span className="font-medium">{product.specs.ram}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>التخزين:</span>
-                  <span className="font-medium">{product.specs.storage}</span>
+              )}
+
+              {/* Price */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-2xl font-bold text-purple-600">
+                    {typeof product.price === 'number'
+                      ? product.price.toLocaleString()
+                      : product.price}{' '}
+                    {product.currency || 'ر.س'}
+                  </span>
+                  {product.originalPrice && (
+                    <div className="text-sm text-gray-400 line-through">
+                      {typeof product.originalPrice === 'number'
+                        ? product.originalPrice.toLocaleString()
+                        : product.originalPrice}{' '}
+                      {product.currency || 'ر.س'}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Price */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <span className="text-2xl font-bold text-purple-600">
-                  {typeof product.price === 'number' ? product.price.toLocaleString() : product.price} {product.currency}
-                </span>
-                {product.originalPrice && (
-                  <div className="text-sm text-gray-400 line-through">
-                    {typeof product.originalPrice === 'number' ? product.originalPrice.toLocaleString() : product.originalPrice} {product.currency}
-                  </div>
-                )}
+              {/* أزرار الإجراءات */}
+              <div className="flex gap-2">
+                {/* زر الطلب الرئيسي */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToWatssap(product, whatsappNumber);
+                  }}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
+                >
+                  <ShoppingCart className="w-4 h-4 inline mr-2" />
+                  اطلب الان
+                </button>
               </div>
             </div>
-
-            {/* Add to Cart Button */}
-            <button
-              onClick={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation(); 
-              }}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
-            >
-              <ShoppingCart className="w-4 h-4 inline mr-2" />
-              اطلب المنتج
-            </button>
           </div>
-        </div>
-      </Link>
-    </div>
-  );
-});
+        </Link>
+      </div>
+    );
+  }
+);
 
 // Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage }) => {
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalItems,
+  itemsPerPage,
+}) => {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 7;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -216,7 +282,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -271,29 +337,44 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
 
 // Main Client Component
 const ProductsClient = ({ initialData }) => {
-  const [data] = useState(initialData);
-  const [filteredProducts, setFilteredProducts] = useState(initialData?.products || []);
+  // معالجة البيانات إذا كانت array
+  const processedData = Array.isArray(initialData) ? initialData[0] : initialData;
+  const [data] = useState(processedData);
+  
+  const [filteredProducts, setFilteredProducts] = useState(
+    data?.products || []
+  );
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [favorites, setFavorites] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(24); // عدد المنتجات في كل صفحة
+  const [itemsPerPage] = useState(24);
+
+  // الحصول على رقم الواتساب من البيانات وتصحيحه
+  const whatsappNumber = useMemo(() => {
+    let number = data?.settings?.whatsappNumber || '+201201061216';
+    // إضافة علامة + إذا لم تكن موجودة
+    if (number && !number.startsWith('+')) {
+      number = '+' + number;
+    }
+    return number;
+  }, [data?.settings?.whatsappNumber]);
 
   // التصفية والبحث مع debouncing
   const debouncedSearch = useMemo(() => {
     const timeoutRef = { current: null };
-    
+
     return (searchTerm, category, sort) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       setIsSearching(true);
-      
+
       timeoutRef.current = setTimeout(() => {
         if (!data) return;
 
@@ -301,16 +382,21 @@ const ProductsClient = ({ initialData }) => {
 
         // فلترة حسب الفئة
         if (category !== 'all') {
-          filtered = filtered.filter(product => product.category === category);
+          filtered = filtered.filter(
+            (product) => product.category === category
+          );
         }
 
         // فلترة حسب البحث
         if (searchTerm.trim()) {
           const term = searchTerm.toLowerCase();
-          filtered = filtered.filter(product =>
-            product.name.toLowerCase().includes(term) ||
-            (product.specs && product.specs.processor && 
-             product.specs.processor.toLowerCase().includes(term))
+          filtered = filtered.filter(
+            (product) =>
+              product.name.toLowerCase().includes(term) ||
+              (product.specs &&
+                Object.values(product.specs).some(spec => 
+                  spec.toLowerCase().includes(term)
+                ))
           );
         }
 
@@ -333,7 +419,7 @@ const ProductsClient = ({ initialData }) => {
         }
 
         setFilteredProducts(filtered);
-        setCurrentPage(1); // العودة للصفحة الأولى بعد التصفية
+        setCurrentPage(1);
         setIsSearching(false);
       }, 300);
     };
@@ -344,9 +430,9 @@ const ProductsClient = ({ initialData }) => {
   }, [searchQuery, activeCategory, sortBy, debouncedSearch]);
 
   const toggleFavorite = useCallback((productId) => {
-    setFavorites(prev =>
+    setFavorites((prev) =>
       prev.includes(productId)
-        ? prev.filter(id => id !== productId)
+        ? prev.filter((id) => id !== productId)
         : [...prev, productId]
     );
   }, []);
@@ -360,22 +446,32 @@ const ProductsClient = ({ initialData }) => {
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  const handlePageChange = useCallback((page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      // التنقل إلى أعلى قسم المنتجات
-      document.getElementById('products-section')?.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  }, [totalPages]);
+  const handlePageChange = useCallback(
+    (page) => {
+      if (page >= 1 && page <= totalPages) {
+        setCurrentPage(page);
+        document.getElementById('products-section')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    },
+    [totalPages]
+  );
 
   const iconMap = {
+    smartphone: Smartphone,
+    headphones: Headphones,
+    mouse: Mouse,
+    keyboard: Keyboard,
+    cable: Cable,
+    camera: Camera,
+    gamepad2: Gamepad2,
+    watch: Watch,
     laptop: Laptop,
     cpu: Cpu,
     'hard-drive': HardDrive,
-    'monitor-speaker': MonitorSpeaker
+    'monitor-speaker': MonitorSpeaker,
   };
 
   if (!data) {
@@ -408,12 +504,14 @@ const ProductsClient = ({ initialData }) => {
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-2xl">
-              <Search className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 transition-all duration-300 ${
-                isSearching ? 'animate-spin' : ''
-              }`} />
+              <Search
+                className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 transition-all duration-300 ${
+                  isSearching ? 'animate-spin' : ''
+                }`}
+              />
               <input
                 type="text"
-                placeholder="ابحث عن اللابتوب المناسب..."
+                placeholder="ابحث عن الاكسسوار المناسب..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pr-12 pl-4 py-3 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 focus:shadow-lg"
@@ -428,16 +526,22 @@ const ProductsClient = ({ initialData }) => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-3 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white transition-all duration-300 focus:shadow-lg"
               >
-                {data.filters && data.filters.sortOptions && data.filters.sortOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                {data.filters &&
+                  data.filters.sortOptions &&
+                  data.filters.sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
               </select>
             </div>
 
             <div className="text-gray-600 font-medium">
-              <span className={`transition-all duration-300 ${isSearching ? 'opacity-50' : 'opacity-100'}`}>
+              <span
+                className={`transition-all duration-300 ${
+                  isSearching ? 'opacity-50' : 'opacity-100'
+                }`}
+              >
                 {filteredProducts.length} منتج متاح
               </span>
             </div>
@@ -449,31 +553,35 @@ const ProductsClient = ({ initialData }) => {
       <section className="py-8 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-4 justify-center">
-            {data.categories && data.categories.map((category) => {
-              const IconComponent = iconMap[category.icon] || Laptop;
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`group flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 ${
-                    activeCategory === category.id
-                      ? 'bg-gradient-to-r ' + category.color + ' text-white shadow-lg scale-105'
-                      : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
-                  }`}
-                >
-                  <IconComponent className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
-                  <span className="font-medium">{category.name}</span>
-                  {activeCategory === category.id && (
-                    <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
-                      {category.id === 'all' 
-                        ? filteredProducts.length
-                        : filteredProducts.filter(p => p.category === category.id).length
-                      }
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            {data.categories &&
+              data.categories.map((category, index) => {
+                const IconComponent = iconMap[category.icon] || Smartphone;
+                return (
+                  <button
+                    key={category.id || `category-${index}`}
+                    onClick={() => setActiveCategory(category.id)}
+                    className={`group flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                      activeCategory === category.id
+                        ? 'bg-gradient-to-r ' +
+                          category.color +
+                          ' text-white shadow-lg scale-105'
+                        : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
+                    <span className="font-medium">{category.name}</span>
+                    {activeCategory === category.id && (
+                      <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
+                        {category.id === 'all'
+                          ? filteredProducts.length
+                          : filteredProducts.filter(
+                              (p) => p.category === category.id
+                            ).length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
           </div>
         </div>
       </section>
@@ -488,8 +596,10 @@ const ProductsClient = ({ initialData }) => {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-20">
-              <Laptop className="w-24 h-24 text-gray-300 mx-auto mb-4 animate-bounce" />
-              <h3 className="text-2xl font-bold text-gray-400 mb-2">لا توجد منتجات</h3>
+              <Smartphone className="w-24 h-24 text-gray-300 mx-auto mb-4 animate-bounce" />
+              <h3 className="text-2xl font-bold text-gray-400 mb-2">
+                لا توجد منتجات
+              </h3>
               <p className="text-gray-500">جرب تغيير معايير البحث أو الفلترة</p>
             </div>
           ) : (
@@ -502,6 +612,7 @@ const ProductsClient = ({ initialData }) => {
                     favorites={favorites}
                     toggleFavorite={toggleFavorite}
                     index={index}
+                    whatsappNumber={whatsappNumber}
                   />
                 ))}
               </div>
@@ -527,16 +638,23 @@ const ProductsClient = ({ initialData }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center text-white">
           <h2 className="text-4xl font-bold mb-6">لم تجد ما تبحث عنه؟</h2>
           <p className="text-xl mb-8 opacity-90">
-            تواصل معنا وسنساعدك في العثور على اللابتوب المثالي
+            تواصل معنا وسنساعدك في العثور على الاكسسوار المثالي
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
-              تواصل معنا
+            <button
+              onClick={() => {
+                goToWatssap(null, whatsappNumber);
+              }}
+              className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
+              تواصل معنا عبر الواتساب
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
-              عرض جميع المنتجات
-              <ArrowRight className="w-5 h-5 inline mr-2" />
-            </button>
+            <Link href="/#all">
+              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
+                عرض جميع المنتجات
+                <ArrowRight className="w-5 h-5 inline mr-2" />
+              </button>
+            </Link>
           </div>
         </div>
       </section>

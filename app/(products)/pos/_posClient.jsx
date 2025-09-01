@@ -26,6 +26,60 @@ import {
   X,
 } from 'lucide-react';
 
+function goToWatssap(product = null, phoneNumber = '+201201061216') {
+  let message = 'السلام عليكم ورحمة الله وبركاته\n';
+
+  if (product) {
+    // رسالة مع معلومات المنتج
+    message += `أريد الاستفسار عن هذا المنتج:\n\n`;
+    message += `📱 *${product.name}*\n\n`;
+
+    // المواصفات
+    if (product.specs) {
+      message += `📋 *المواصفات:*\n`;
+      Object.entries(product.specs).forEach(([key, value]) => {
+        message += `🔧 ${key}: ${value}\n`;
+      });
+      message += `\n`;
+    }
+
+    // السعر
+    message += `💰 *السعر:* ${
+      typeof product.price === 'number'
+        ? product.price.toLocaleString()
+        : product.price
+    } ${product.currency || 'ر.س'}`;
+
+    if (product.originalPrice && product.discount) {
+      message += `\n🔥 *خصم ${product.discount}%* من ${
+        typeof product.originalPrice === 'number'
+          ? product.originalPrice.toLocaleString()
+          : product.originalPrice
+      } ${product.currency || 'ر.س'}`;
+    }
+
+    message += `\n\n⭐ *التقييم:* ${product.rating}/5\n\n`;
+
+    // صورة المنتج (رابط)
+    if (product.image) {
+      message += `🖼️ *صورة المنتج:*\n${product.image}\n\n`;
+    }
+
+    message += `🛒 أرغب في الحصول على مزيد من التفاصيل والطلب\n`;
+    message += `📞 يرجى التواصل معي في أقرب وقت ممكن`;
+  } else {
+    // رسالة عامة
+    message += 'أريد الاستفسار عن منتجاتكم\n';
+    message += 'يرجى التواصل معي للمساعدة في اختيار المنتج المناسب';
+  }
+
+  // تشفير الرسالة للـ URL
+  const encodedMessage = encodeURIComponent(message);
+
+  // فتح WhatsApp مع الرسالة
+  window.open(`https://wa.me/${phoneNumber.replace('+', '')}?text=${encodedMessage}`);
+}
+
 // مكون كارت المنتج المحسن للأداء
 const ProductCard = React.memo(({ product, favorites, toggleFavorite, index }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -172,35 +226,6 @@ const ProductCard = React.memo(({ product, favorites, toggleFavorite, index }) =
                 </span>
               </div>
             )}
-
-            {/* Action Buttons */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  toggleFavorite(product.id); 
-                }}
-                className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
-                  favorites.includes(product.id)
-                    ? 'bg-red-500 text-white shadow-lg'
-                    : 'bg-white/90 text-gray-700 hover:bg-white'
-                }`}
-              >
-                <Heart className={`w-5 h-5 transition-all duration-300 ${
-                  favorites.includes(product.id) ? 'fill-current scale-110' : ''
-                }`} />
-              </button>
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                }}
-                className="p-3 bg-white/90 text-gray-700 rounded-full hover:bg-white transition-all duration-300 transform hover:scale-110"
-              >
-                <Eye className="w-5 h-5" />
-              </button>
-            </div>
           </div>
 
           {/* Product Info */}
@@ -237,11 +262,12 @@ const ProductCard = React.memo(({ product, favorites, toggleFavorite, index }) =
               onClick={(e) => { 
                 e.preventDefault(); 
                 e.stopPropagation(); 
+                goToWatssap(product);
               }}
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
             >
               <ShoppingCart className="w-4 h-4 inline mr-2" />
-              أضف للسلة
+              اطلب الان
             </button>
           </div>
         </div>
@@ -825,10 +851,16 @@ const POSClient = ({ initialData, error }) => {
             أخبرنا نوع النشاط والحجم وسنقترح أفضل الحلول مع إعداد ودعم فني
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
-              نظام مخصص
+            <button onClick={() => {
+                goToWatssap(null);
+              }}
+            className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+              تواصل معنا
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
+            <button onClick={() => {
+                goToWatssap(null);
+              }}
+              className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
               استشارة فنية مجانية
               <ArrowRight className="w-5 h-5 inline mr-2" />
             </button>

@@ -48,15 +48,6 @@ export default function Navbar({ navbarData }) {
         <div className="grid grid-cols-12 items-center h-16">
           {/* LEFT: Cart (takes 2 columns) */}
           <div className="col-span-2 flex items-center justify-start">
-            <button
-              aria-label="Open cart"
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-white bg-gradient-to-r ${cartGradient} shadow-sm hover:scale-105 transition-transform`}
-            >
-              <ShoppingCart size={18} />
-              <span className="hidden sm:inline">
-                {navbarData.cartButton?.text || 'السلة'}
-              </span>
-            </button>
           </div>
 
           {/* CENTER: Nav links (takes 8 columns for more space) */}

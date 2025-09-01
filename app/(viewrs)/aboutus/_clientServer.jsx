@@ -4,6 +4,12 @@
 
 import { useState, useEffect } from 'react';
 import { Users, Loader, Target, Award, Heart, Star, ChevronRight, Eye, Lightbulb, Shield, Rocket, Globe, TrendingUp, Laptop, Truck, Package, Play, Check, Clock, MapPin, Phone, Mail, MessageCircle, Calendar, Zap } from 'lucide-react';
+import Link from 'next/link';
+
+function goToWatssap() {
+  window.open('https://wa.me/+2001201061216');
+}
+
 
 const AboutUsClient = ({ initialData, error: serverError }) => {
   const [activeValue, setActiveValue] = useState(0);
@@ -156,13 +162,17 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
               </p>
               
               <div className="mt-12 flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up animation-delay-600">
-                <button className="group bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center">
-                  <Play className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  {aboutData.hero.additionalContent?.primaryButton?.text}
-                </button>
-                <button className="border-2 border-white/50 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-gray-900 transform hover:scale-105 transition-all duration-300">
-                  {aboutData.hero.additionalContent?.secondaryButton?.text}
-                </button>
+                <Link href='#ourStory'>
+                  <button className="group bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center">
+                    <Play className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    {aboutData.hero.additionalContent?.primaryButton?.text}
+                  </button>
+                </Link>
+                <Link href={'/laptop'}>
+                  <button className="border-2 border-white/50 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-gray-900 transform hover:scale-105 transition-all duration-300">
+                    {aboutData.hero.additionalContent?.secondaryButton?.text}
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -174,7 +184,7 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
       </section>
 
       {/* Story Section with Tabs */}
-      <section className="py-24 bg-white">
+      <section id='ourStory' className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-bold text-gray-900 mb-6">{aboutData.story.title}</h2>
@@ -513,14 +523,16 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-              <button className="group bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center">
-                <Laptop className="w-6 h-6 ml-3 group-hover:scale-110 transition-transform" />
-                {aboutData.sections?.ctaSection?.buttons?.primary?.text}
-              </button>
-              <button className="group border-2 border-white/50 backdrop-blur-sm text-white px-12 py-4 rounded-full text-xl font-bold hover:bg-white hover:text-purple-600 transform hover:scale-105 transition-all duration-300 flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 ml-3 group-hover:scale-110 transition-transform" />
-                {aboutData.sections?.ctaSection?.buttons?.secondary?.text}
-              </button>
+              <Link href={'/laptop'}>
+                <button className="group bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center">
+                  <Laptop className="w-6 h-6 ml-3 group-hover:scale-110 transition-transform" />
+                  {aboutData.sections?.ctaSection?.buttons?.primary?.text}
+                </button>
+              </Link>
+                <button onClick={() => {goToWatssap()}} className="group border-2 border-white/50 backdrop-blur-sm text-white px-12 py-4 rounded-full text-xl font-bold hover:bg-white hover:text-purple-600 transform hover:scale-105 transition-all duration-300 flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 ml-3 group-hover:scale-110 transition-transform" />
+                  {aboutData.sections?.ctaSection?.buttons?.secondary?.text}
+                </button>
             </div>
             
             {/* Trust indicators */}

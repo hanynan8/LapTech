@@ -21,6 +21,14 @@ import {
   Loader
 } from 'lucide-react';
 
+import Link from 'next/link';
+
+function goToWatssap() {
+  window.open('https://wa.me/+2001201061216');
+}
+
+
+
 const ContactClient = ({ initialData, error: serverError }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -341,10 +349,10 @@ const ContactClient = ({ initialData, error: serverError }) => {
                         <div className="flex-grow">
                           <h4 className="text-xl font-bold text-gray-900 mb-2">{method.title}</h4>
                           <p className="text-gray-600 mb-3">{method.description}</p>
-                          <button className="text-purple-600 font-bold hover:text-purple-800 transition-colors duration-300">
-                            {method.buttonText}
-                            <ArrowRight className="w-4 h-4 inline mr-1" />
-                          </button>
+                            <button onClick={() => {goToWatssap()}} className="text-purple-600 font-bold hover:text-purple-800 transition-colors duration-300">
+                              {method.buttonText}
+                              <ArrowRight className="w-4 h-4 inline mr-1" />
+                            </button>
                         </div>
                       </div>
                     </div>
@@ -382,27 +390,15 @@ const ContactClient = ({ initialData, error: serverError }) => {
           <div className="text-center text-white mb-12">
             <h2 className="text-5xl font-bold mb-6">{contactData.socialSection?.title}</h2>
             <p className="text-2xl opacity-90 mb-8">{contactData.socialSection?.subtitle}</p>
-            
-            <div className="flex justify-center space-x-6 space-x-reverse">
-              {contactData.socialLinks?.map((social, index) => {
-                const IconComponent = iconMap[social.icon];
-                return (
-                  <button
-                    key={index}
-                    className={`bg-white/20 backdrop-blur-sm p-4 rounded-full ${social.color} transition-all duration-300 transform hover:scale-110`}
-                  >
-                    {IconComponent && <IconComponent className="w-8 h-8 text-white" />}
-                  </button>
-                );
-              })}
-            </div>
           </div>
           
           <div className="text-center">
-            <button className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-              {contactData.socialSection?.storeButton}
-              <ArrowRight className="w-6 h-6 inline mr-3" />
-            </button>
+            <Link href={'/laptop'}>
+              <button className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                {contactData.socialSection?.storeButton}
+                <ArrowRight className="w-6 h-6 inline mr-3" />
+              </button>
+            </Link>
           </div>
         </div>
       </section>

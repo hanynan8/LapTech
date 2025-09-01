@@ -4,8 +4,63 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Headphones, Mouse, Keyboard, Smartphone, Cable, Camera, Watch, Gamepad2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
+// دالة WhatsApp المحدثة مع معلومات الاكسسوار
+function goToWatssap(product = null, phoneNumber = '+2001201061216') {
+  let message = 'السلام عليكم ورحمة الله وبركاته\n';
+
+  if (product) {
+    // رسالة مع معلومات الاكسسوار
+    message += `أريد الاستفسار عن هذا الاكسسوار:\n\n`;
+    message += `🎧 *${product.name}*\n\n`;
+
+    // المواصفات (إذا كانت متاحة)
+    if (product.specs && Object.keys(product.specs).length > 0) {
+      message += `📋 *المواصفات:*\n`;
+      Object.entries(product.specs).forEach(([key, value]) => {
+        message += `• ${key}: ${value}\n`;
+      });
+      message += `\n`;
+    }
+
+    // السعر
+    message += `💰 *السعر:* ${
+      typeof product.price === 'number'
+        ? product.price.toLocaleString()
+        : product.price
+    } ${product.currency}`;
+
+    if (product.originalPrice && product.discount) {
+      message += `\n🔥 *خصم ${product.discount}%* من ${
+        typeof product.originalPrice === 'number'
+          ? product.originalPrice.toLocaleString()
+          : product.originalPrice
+      } ${product.currency}`;
+    }
+
+    message += `\n\n⭐ *التقييم:* ${product.rating}/5\n\n`;
+
+    // صورة المنتج (رابط)
+    if (product.image) {
+      message += `🖼️ *صورة المنتج:*\n${product.image}\n\n`;
+    }
+
+    message += `🛒 أرغب في الحصول على مزيد من التفاصيل والطلب\n`;
+    message += `📞 يرجى التواصل معي في أقرب وقت ممكن`;
+  } else {
+    // رسالة عامة
+    message += 'أريد الاستفسار عن الاكسسوارات المتاحة\n';
+    message += 'يرجى التواصل معي للمساعدة في اختيار الاكسسوار المناسب';
+  }
+
+  // تشفير الرسالة للـ URL
+  const encodedMessage = encodeURIComponent(message);
+
+  // فتح WhatsApp مع الرسالة
+  window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`);
+}
+
 // Accessory Card Component محسن للأداء
-const AccessoryCard = React.memo(({ product, favorites, toggleFavorite, index }) => {
+const AccessoryCard = React.memo(({ product, favorites, toggleFavorite, index, whatsappNumber }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef();
@@ -89,35 +144,6 @@ const AccessoryCard = React.memo(({ product, favorites, toggleFavorite, index })
                 </span>
               </div>
             )}
-
-            {/* Action Buttons */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  toggleFavorite(product.id); 
-                }}
-                className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
-                  favorites.includes(product.id)
-                    ? 'bg-red-500 text-white shadow-lg'
-                    : 'bg-white/90 text-gray-700 hover:bg-white'
-                }`}
-              >
-                <Heart className={`w-5 h-5 transition-all duration-300 ${
-                  favorites.includes(product.id) ? 'fill-current scale-110' : ''
-                }`} />
-              </button>
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                }}
-                className="p-3 bg-white/90 text-gray-700 rounded-full hover:bg-white transition-all duration-300 transform hover:scale-110"
-              >
-                <Eye className="w-5 h-5" />
-              </button>
-            </div>
           </div>
 
           {/* Product Info */}
@@ -169,17 +195,21 @@ const AccessoryCard = React.memo(({ product, favorites, toggleFavorite, index })
               </div>
             </div>
 
-            {/* Add to Cart Button */}
-            <button
-              onClick={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation(); 
-              }}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
-            >
-              <ShoppingCart className="w-4 h-4 inline mr-2" />
-              أضف للسلة
-            </button>
+            {/* أزرار الإجراءات */}
+            <div className="flex gap-2">
+              {/* زر الطلب الرئيسي */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToWatssap(product, whatsappNumber); // تمرير معلومات الاكسسوار
+                }}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
+              >
+                <ShoppingCart className="w-4 h-4 inline mr-2" />
+                اطلب الان
+              </button>
+            </div>
           </div>
         </div>
       </Link>
@@ -280,6 +310,9 @@ const AccessoriesClient = ({ initialData, error }) => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(24); // عدد الاكسسوارات في كل صفحة
+
+  // الحصول على رقم الواتساب من البيانات
+  const whatsappNumber = data?.settings?.whatsappNumber || '+2001201061216';
 
   // التصفية والبحث مع debouncing
   const debouncedSearch = useMemo(() => {
@@ -484,11 +517,11 @@ const AccessoriesClient = ({ initialData, error }) => {
       <section className="py-8 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-4 justify-center">
-            {data.categories && data.categories.map((category) => {
+            {data.categories && data.categories.map((category, index) => {
               const IconComponent = iconMap[category.icon] || Smartphone;
               return (
                 <button
-                  key={category.id}
+                  key={category.id || `category-${index}`}
                   onClick={() => setActiveCategory(category.id)}
                   className={`group flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 ${
                     activeCategory === category.id
@@ -537,6 +570,7 @@ const AccessoriesClient = ({ initialData, error }) => {
                     favorites={favorites}
                     toggleFavorite={toggleFavorite}
                     index={index}
+                    whatsappNumber={whatsappNumber}
                   />
                 ))}
               </div>
@@ -565,13 +599,20 @@ const AccessoriesClient = ({ initialData, error }) => {
             تواصل معنا وسنساعدك في العثور على الاكسسوار المثالي لاحتياجاتك
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+            <button
+              onClick={() => {
+                goToWatssap(null, whatsappNumber); // رسالة عامة مع الرقم الديناميكي
+              }}
+              className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
               تواصل معنا
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
-              عرض جميع الاكسسوارات
-              <ArrowRight className="w-5 h-5 inline mr-2" />
-            </button>
+            <Link href="/accessories">
+              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
+                عرض جميع الاكسسوارات
+                <ArrowRight className="w-5 h-5 inline mr-2" />
+              </button>
+            </Link>
           </div>
         </div>
       </section>

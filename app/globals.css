@@ -6,6 +6,7 @@
 html {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: #6b21a8 #f1f5f9; /* المقبض (بنفسجي) والخلفية (رمادي فاتح) */
+  scroll-behavior: smooth;
 }
 
 /* Chrome, Edge, Safari */

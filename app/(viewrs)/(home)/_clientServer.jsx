@@ -4,6 +4,14 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link';
 import { ChevronRight, Star, Loader, Truck, Shield, Headphones, Award, ShoppingCart, ArrowRight, Zap, Cpu, MonitorSpeaker, Gamepad2, HardDrive, Smartphone, RefreshCw } from 'lucide-react';
 
+
+function goToWatssap() {
+  window.open('https://wa.me/+2001201061216');
+}
+
+
+
+
 // Icon mapping for features and categories
 const iconMap = {
   truck: Truck,
@@ -38,30 +46,14 @@ const ProductCard = ({ product, categoryKey }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
-  const handleAddToCart = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    
-    // Show success feedback
-    const button = e.target.closest('button');
-    const originalText = button.innerHTML;
-    button.innerHTML = 'تم الإضافة ✓';
-    button.classList.add('bg-green-500');
-    
-    setTimeout(() => {
-      button.innerHTML = originalText;
-      button.classList.remove('bg-green-500');
-    }, 2000);
-  }, [product]);
 
   return (
-    <Link
-      href={`/${categoryKey}/${product.id}`}
-      className="group block"
-      aria-label={`عرض تفاصيل ${product.name}`}
-    >
       <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl overflow-hidden shadow-lg group-hover:shadow-2xl transform group-hover:scale-[1.02] transition-all duration-500">
+          <Link
+            href={`/${categoryKey}/${product.id}`}
+            className="group block"
+            aria-label={`عرض تفاصيل ${product.name}`}
+          >
         <div className="relative overflow-hidden">
           {!imageError ? (
             <>
@@ -105,6 +97,7 @@ const ProductCard = ({ product, categoryKey }) => {
             )}
           </div>
         </div>
+    </Link>
         
         <div className="p-8">
           <h4 className="text-2xl font-bold text-gray-900 mb-3 line-clamp-2">{product.name}</h4>
@@ -139,17 +132,16 @@ const ProductCard = ({ product, categoryKey }) => {
             </div>
           </div>
           
-          <button 
-            onClick={handleAddToCart}
+          <button
+            onClick={() => goToWatssap()}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold text-lg"
-            aria-label={`إضافة ${product.name} إلى السلة`}
+            aria-label={`اطلب الان عن طريق الواتس اب`}
           >
-            أضف للسلة
+            اطلب الان
             <ShoppingCart className="w-5 h-5 inline mr-2" />
           </button>
         </div>
       </div>
-    </Link>
   );
 };
 
@@ -350,12 +342,14 @@ const HeroSection = ({ heroData }) => {
               <p className="text-2xl md:text-3xl mb-8 opacity-90 animate-fade-in-up animation-delay-200">
                 أفضل الأجهزة التقنية
               </p>
+              <Link href={'/laptop'}>
               <button 
                 className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 animate-fade-in-up animation-delay-400"
-              >
+                >
                 تسوق الآن
                 <ArrowRight className="w-6 h-6 inline mr-3" />
               </button>
+                </Link>
             </div>
           </div>
         </div>
@@ -383,12 +377,14 @@ const HeroSection = ({ heroData }) => {
               <p className="text-2xl md:text-3xl mb-8 opacity-90 animate-fade-in-up animation-delay-200">
                 {slide.subtitle}
               </p>
-              <button 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-4 rounded-full text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 animate-fade-in-up animation-delay-400"
-              >
-                {heroData.buttonText || "تسوق الآن"}
-                <ArrowRight className="w-6 h-6 inline mr-3" />
-              </button>
+              <Link href={'/laptop'}>
+                <button 
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-4 rounded-full text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 animate-fade-in-up animation-delay-400"
+                  >
+                  {heroData.buttonText || "تسوق الآن"}
+                  <ArrowRight className="w-6 h-6 inline mr-3" />
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -486,7 +482,7 @@ const HomePage = ({ initialData, apiUrl }) => {
       )}
 
       {/* Products by Categories Section */}
-      <section className="py-20 bg-white">
+      <section id='all' className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-bold text-gray-900 mb-4">تسوق حسب الفئات</h2>
@@ -589,13 +585,15 @@ const HomePage = ({ initialData, apiUrl }) => {
           <div className="text-center text-white">
             <h2 className="text-5xl font-bold mb-6">ابدأ رحلتك التقنية معنا</h2>
             <p className="text-2xl mb-12 opacity-90">اكتشف أفضل العروض واحصل على أجهزة بجودة عالمية</p>
+            <Link href={'/laptop'}>
             <button 
               className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               aria-label="تسوق الآن"
-            >
+              >
               تسوق الآن
               <ShoppingCart className="w-6 h-6 inline mr-3" />
             </button>
+              </Link>
           </div>
         </div>
       </section>

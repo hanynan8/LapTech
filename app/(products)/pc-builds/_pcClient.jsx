@@ -9,8 +9,87 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// دالة WhatsApp المحدثة مع معلومات التجميعة
+function goToWatssap(product = null, phoneNumber = '+201201061216') {
+  let message = 'السلام عليكم ورحمة الله وبركاته\n';
+
+  if (product) {
+    // رسالة مع معلومات التجميعة
+    message += `أريد الاستفسار عن هذه التجميعة:\n\n`;
+    message += `🖥️ *${product.name}*\n\n`;
+
+    // المواصفات
+    if (product.specs) {
+      message += `⚙️ *المواصفات:*\n`;
+      Object.entries(product.specs).forEach(([key, value]) => {
+      });
+      message += `\n`;
+    }
+
+    // المكونات الأساسية
+    if (product.components && Array.isArray(product.components)) {
+      message += `🔩 *المكونات:*\n`;
+      product.components.slice(0, 5).forEach((component, index) => {
+        message += `${index + 1}. ${component}\n`;
+      });
+      if (product.components.length > 5) {
+        message += `و${product.components.length - 5} مكونات أخرى...\n`;
+      }
+      message += `\n`;
+    }
+
+    // درجة الأداء
+    if (product.performanceScore) {
+      message += `📊 *درجة الأداء:* ${product.performanceScore}%\n`;
+    }
+
+    // نتائج الاختبارات
+    if (product.benchmarks) {
+      message += `🏆 *نتائج الاختبارات:*\n`;
+      Object.entries(product.benchmarks).slice(0, 3).forEach(([key, value]) => {
+        message += `📈 ${key}: ${value}\n`;
+      });
+      message += `\n`;
+    }
+
+    // السعر
+    message += `💰 *السعر:* ${
+      typeof product.price === 'number'
+        ? product.price.toLocaleString()
+        : product.price
+    } ${product.currency || 'جنيه'}`;
+
+    if (product.originalPrice && product.discount) {
+      message += `\n🔥 *خصم ${product.discount}%* من ${
+        typeof product.originalPrice === 'number'
+          ? product.originalPrice.toLocaleString()
+          : product.originalPrice
+      } ${product.currency || 'جنيه'}`;
+    }
+
+
+    // صورة التجميعة (رابط)
+    if (product.image && product.image !== 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400') {
+      message += `\n\n🖼️ *صورة التجميعة:*\n${product.image}\n`;
+    }
+
+    message += `\n\n🛒 أرغب في الحصول على مزيد من التفاصيل والطلب`;
+    message += `\n📞 يرجى التواصل معي في أقرب وقت ممكن`;
+  } else {
+    // رسالة عامة
+    message += 'أريد الاستفسار عن تجميعات الكمبيوتر المتاحة\n';
+    message += 'يرجى التواصل معي للمساعدة في اختيار التجميعة المناسبة لاحتياجاتي وميزانيتي';
+  }
+
+  // تشفير الرسالة للـ URL
+  const encodedMessage = encodeURIComponent(message);
+
+  // فتح WhatsApp مع الرسالة - الطريقة البسيطة التي كانت شغالة
+  window.open(`https://wa.me/${phoneNumber.replace('+', '')}?text=${encodedMessage}`);
+}
+
 // مكون بطاقة التجميعة المحسن للأداء
-const PCBuildCard = React.memo(({ product, favorites, toggleFavorite, index }) => {
+const PCBuildCard = React.memo(({ product, favorites, toggleFavorite, index, whatsappNumber }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showSpecs, setShowSpecs] = useState(false);
@@ -198,36 +277,6 @@ const PCBuildCard = React.memo(({ product, favorites, toggleFavorite, index }) =
                 </div>
               </div>
             )}
-
-            {/* أزرار التفاعل */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  toggleFavorite(product.id); 
-                }}
-                className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
-                  favorites.includes(product.id)
-                    ? 'bg-red-500 text-white shadow-lg'
-                    : 'bg-white/90 text-gray-700 hover:bg-white'
-                }`}
-              >
-                <Heart className={`w-5 h-5 transition-all duration-300 ${
-                  favorites.includes(product.id) ? 'fill-current scale-110' : ''
-                }`} />
-              </button>
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  setShowSpecs(!showSpecs);
-                }}
-                className="p-3 bg-white/90 text-gray-700 rounded-full hover:bg-white transition-all duration-300 transform hover:scale-110"
-              >
-                <Eye className="w-5 h-5" />
-              </button>
-            </div>
           </div>
 
           {/* معلومات التجميعة */}
@@ -303,17 +352,21 @@ const PCBuildCard = React.memo(({ product, favorites, toggleFavorite, index }) =
               </span>
             </div>
 
-            {/* زر الإضافة للسلة */}
-            <button
-              onClick={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation(); 
-              }}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
-            >
-              <ShoppingCart className="w-4 h-4 inline mr-2" />
-              أضف للسلة
-            </button>
+            {/* أزرار الإجراءات */}
+            <div className="flex gap-2">
+              {/* زر الطلب الرئيسي */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToWatssap(product, whatsappNumber);
+                }}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700"
+              >
+                <ShoppingCart className="w-4 h-4 inline mr-2" />
+                اطلب الآن
+              </button>
+            </div>
           </div>
         </div>
       </Link>
@@ -434,8 +487,11 @@ const PriceFilter = ({ priceRange, onPriceChange, filters }) => {
 
 // المكون الرئيسي للعميل
 const PCBuildsClient = ({ initialData, error }) => {
-  const [data] = useState(initialData);
-  const [filteredProducts, setFilteredProducts] = useState(initialData?.products || []);
+  // معالجة البيانات إذا كانت array
+  const processedData = Array.isArray(initialData) ? initialData[0] : initialData;
+  const [data] = useState(processedData);
+  
+  const [filteredProducts, setFilteredProducts] = useState(data?.products || []);
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -447,6 +503,16 @@ const PCBuildsClient = ({ initialData, error }) => {
   // حالات الصفحات
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20); // عدد التجميعات في كل صفحة
+
+  // الحصول على رقم الواتساب من البيانات وتصحيحه
+  const whatsappNumber = useMemo(() => {
+    let number = data?.settings?.whatsappNumber || '+201201061216';
+    // إضافة علامة + إذا لم تكن موجودة
+    if (number && !number.startsWith('+')) {
+      number = '+' + number;
+    }
+    return number;
+  }, [data?.settings?.whatsappNumber]);
 
   // خريطة الأيقونات الموسعة
   const iconMap = {
@@ -834,6 +900,7 @@ const PCBuildsClient = ({ initialData, error }) => {
                         favorites={favorites}
                         toggleFavorite={toggleFavorite}
                         index={index}
+                        whatsappNumber={whatsappNumber}
                       />
                     ))}
                   </div>
@@ -864,10 +931,18 @@ const PCBuildsClient = ({ initialData, error }) => {
             دعنا نصمم لك التجميعة المثالية حسب احتياجاتك وميزانيتك مع ضمان التوافق الكامل
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
-              تجميعة مخصصة
+            <button 
+              onClick={() => {
+                goToWatssap(null, whatsappNumber);
+              }}
+              className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
+              تواصل معنا عبر الواتساب
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
+            <button onClick={() => {
+                goToWatssap(null, whatsappNumber);
+              }}
+            className="border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105">
               استشارة فنية مجانية
               <ArrowRight className="w-5 h-5 inline mr-2" />
             </button>

@@ -66,7 +66,10 @@ export const metadata = {
   // مهم: metadataBase يجب أن يكون الدومين الرئيسي (يُستعمل لبناء روابط نسبية في الـmetadata)
   metadataBase: new URL('https://lap-tech-five.vercel.app/'),
   openGraph: {
-    title: 'TechLap Elite | احدث الادوات التقنية',
+    title: {
+      default: 'TechLap Elite | احدث الادوات التقنية',
+      template: '%s | TechLap Elite',
+    },
     description:
       'تسوّق أحدث الادوات التقنية وأفضل الإكسسوارات مع أسعار تنافسية وجودة عالية.',
     url: 'https://lap-tech-five.vercel.app/',

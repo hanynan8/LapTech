@@ -4,19 +4,112 @@ import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
+// دالة لجلب منتج واحد مباشرة عن طريق ID
+async function fetchProductById(id) {
+  try {
+    const res = await fetch(
+      `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices&id=${id}`,
+      { 
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(8000)
+      }
+    );
+    
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    // معالجة مرنة للبيانات - نفس منطق laptop
+    return Array.isArray(data) && data.length > 0 ? data[0] : data || null;
+  } catch (error) {
+    console.error('خطأ في جلب بيانات المنتج:', error);
+    return null;
+  }
+}
+
+// دالة لجلب المنتجات المشابهة لفئة معينة
+async function fetchRelatedProducts(categoryId, excludeId, limit = 8) {
+  try {
+    const res = await fetch(
+      `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices&category=${encodeURIComponent(categoryId)}&limit=${limit}`,
+      { 
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(8000)
+      }
+    );
+    
+    if (!res.ok) return [];
+    
+    const data = await res.json();
+    let products = [];
+    
+    // معالجة مرنة - تجربة الهياكل المختلفة
+    if (Array.isArray(data)) {
+      if (data.length > 0 && data[0].products) {
+        // إذا كانت البيانات داخل products array
+        products = data[0].products;
+      } else {
+        // إذا كانت البيانات مباشرة في array
+        products = data;
+      }
+    } else if (data && data.products) {
+      // إذا كانت البيانات object يحتوي على products
+      products = data.products;
+    }
+    
+    // فلترة وإرجاع النتائج
+    return products
+      .filter(product => product.id !== excludeId && product.category === categoryId)
+      .slice(0, limit);
+      
+  } catch (error) {
+    console.error('خطأ في جلب المنتجات المشابهة:', error);
+    return [];
+  }
+}
+
+// دالة لجلب معلومات الفئة
+async function fetchCategoryInfo(categoryId) {
+  try {
+    const res = await fetch(
+      `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices`,
+      { 
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(8000)
+      }
+    );
+    
+    if (!res.ok) return null;
+    
+    const data = await res.json();
+    let categories = [];
+    
+    // معالجة مرنة للبيانات
+    if (Array.isArray(data)) {
+      if (data.length > 0 && data[0].categories) {
+        categories = data[0].categories;
+      }
+    } else if (data && data.categories) {
+      categories = data.categories;
+    }
+    
+    return categories.find(category => category.id === categoryId) || null;
+  } catch (error) {
+    console.error('خطأ في جلب معلومات الفئة:', error);
+    return null;
+  }
+}
+
 // Server Component للمنتجات المشابهة
-async function RelatedProducts({ product, allProducts, categories }) {
-  if (!allProducts || allProducts.length === 0) return null;
-
-  // فلترة المنتجات من نفس الفئة (عدا المنتج الحالي)
-  const relatedProducts = allProducts
-    .filter(p => p.id !== product.id && p.category === product.category)
-    .slice(0, 8);
-
-  if (relatedProducts.length === 0) return null;
+async function RelatedProducts({ product }) {
+  const relatedProducts = await fetchRelatedProducts(product.category, product.id, 8);
+  
+  if (!relatedProducts || relatedProducts.length === 0) return null;
 
   // الحصول على معلومات الفئة
-  const categoryInfo = categories?.find(cat => cat.id === product.category);
+  const categoryInfo = await fetchCategoryInfo(product.category);
 
   return (
     <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
@@ -203,49 +296,17 @@ function StarRating({ rating, size = 'sm' }) {
 
 export default async function ProductDetailsPage({ params }) {
   const resolvedParams = await params;
+  const productId = resolvedParams.id;
 
-  // جلب جميع البيانات
-  async function fetchAllStorageData() {
-    try {
-      const res = await fetch(
-        `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices`,
-        { 
-          next: { revalidate: 3600 },
-          signal: AbortSignal.timeout(8000)
-        }
-      );
-      
-      if (!res.ok) return null;
-      
-      const data = await res.json();
-      return Array.isArray(data) && data.length > 0 ? data[0] : null;
-    } catch (error) {
-      console.error('خطأ في جلب بيانات وسائط التخزين:', error);
-      return null;
-    }
+  // جلب بيانات المنتج مباشرة عن طريق ID
+  const product = await fetchProductById(productId);
+  
+  if (!product) {
+    notFound();
   }
 
-
-  
-  // جلب البيانات
-  const storageData = await fetchAllStorageData();
-  if (!storageData || !storageData.products) notFound();
-
-  // البحث عن المنتج المحدد
-  const product = storageData.products.find(item => item.id === resolvedParams.id);
-  if (!product) notFound();
-
-  // استخراج البيانات الديناميكية
-  const {
-    pageTitle = 'وسائط التخزين',
-    pageSubtitle = '',
-    categories = [],
-    filters = {},
-    products = []
-  } = storageData;
-
-  // الحصول على معلومات الفئة
-  const categoryInfo = categories.find(cat => cat.id === product.category);
+  // جلب معلومات الفئة إذا كانت موجودة
+  const categoryInfo = product.category ? await fetchCategoryInfo(product.category) : null;
 
   // استخراج المواصفات
   const specs = product.specs || {};
@@ -384,7 +445,7 @@ export default async function ProductDetailsPage({ params }) {
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Link href="/" className="hover:text-purple-600 transition-colors">الرئيسية</Link>
             <span>›</span>
-            <Link href="/storage" className="hover:text-purple-600 transition-colors">{pageTitle}</Link>
+            <Link href="/storage" className="hover:text-purple-600 transition-colors">وسائط التخزين</Link>
             <span>›</span>
             {categoryInfo && (
               <>
@@ -540,7 +601,6 @@ export default async function ProductDetailsPage({ params }) {
         {/* عرض جميع المصفوفات الموجودة في detailedSpecs بشكل ديناميكي */}
         {detailedSpecs && Object.entries(detailedSpecs).map(([key, value]) => {
           if (Array.isArray(value) && value.length > 0) {
-            // **تم تعديل هذا السطر**: إضافة key لعنصر القائمة المعيّن لتفادي تحذير React عن المفاتيح الفريدة
             return <div key={`detailed-${key}`}>{renderArrayAsHTML(value, key, categoryInfo)}</div>;
           }
           return null;
@@ -565,22 +625,8 @@ export default async function ProductDetailsPage({ params }) {
             </div>
           </div>
         }>
-          <RelatedProducts product={product} allProducts={products} categories={categories} />
+          <RelatedProducts product={product} />
         </Suspense>
-
-        {/* إحصائيات إضافية من API */}
-        {filters?.sortOptions && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">خيارات التصنيف المتاحة</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {filters.sortOptions.map((option, index) => (
-                <div key={`sort-${index}`} className="bg-gray-50 rounded-xl p-4 text-center card-hover">
-                  <div className="text-sm font-medium text-gray-700">{option.label}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
 
       {/* معرض الصور */}

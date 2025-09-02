@@ -1,10 +1,10 @@
+// pages/accessories/[id].jsx
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import WhatsAppButton from '../../_whatsForDetails'; // Adjust the path based on your project structure
 
 export const dynamicParams = true;
-
-
 
 // دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
@@ -51,7 +51,7 @@ async function RelatedProducts({ product }) {
             const res = await fetch(
               `https://restaurant-back-end.vercel.app/api/data?collection=accessories&id=${id}`,
               { 
-                next: { revalidate: 3600 },
+                next: { revalidate: 86000 },
                 signal: AbortSignal.timeout(5000)
               }
             );
@@ -693,10 +693,12 @@ export default async function ProductDetailsPage({ params }) {
               </div>
 
               <div className="flex gap-2 sm:gap-4 pt-2 sm:pt-4">
-                <button 
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 sm:py-4 px-4 sm:px-8 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <WhatsAppButton
+                  product={product}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 sm:py-4 px-4 sm:px-8 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                >
                   اطلب الآن
-                </button>
+                </WhatsAppButton>
               </div>
 
               {details.description && (
@@ -886,10 +888,12 @@ export default async function ProductDetailsPage({ params }) {
               <div className="text-xs sm:text-sm opacity-90">دعم فني على مدار الساعة</div>
             </div>
           </div>
-          <button 
-            className="mt-4 sm:mt-8 bg-white text-purple-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <WhatsAppButton
+            product={product}
+            className="mt-4 sm:mt-8 bg-white text-purple-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
             اطلب الآن بأفضل سعر
-          </button>
+          </WhatsAppButton>
         </section>
       </div>
 

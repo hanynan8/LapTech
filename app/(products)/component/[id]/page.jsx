@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import WhatsAppButton from '../../_whatsForDetails'; // Adjust the path based on your project structure
+
 
 export const dynamicParams = true;
 
@@ -52,7 +54,7 @@ async function RelatedProducts({ component }) {
             const res = await fetch(
               `https://restaurant-back-end.vercel.app/api/data?collection=component&id=${id}`,
               { 
-                next: { revalidate: 3600 }, // تحسين مدة التخزين المؤقت
+                next: { revalidate: 86000 }, // تحسين مدة التخزين المؤقت
                 signal: AbortSignal.timeout(5000) // إضافة timeout
               }
             );
@@ -778,12 +780,11 @@ export default async function ComponentDetailsPage({ params }) {
 
               {/* أزرار الإجراء */}
               <div className="flex gap-4 pt-4">
-                <button className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <WhatsAppButton
+                  product={component}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                   اطلب الآن
-                </button>
-                <button className="px-8 py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors">
-                  المفضلة
-                </button>
+                </WhatsAppButton>
               </div>
 
               {/* الوصف */}

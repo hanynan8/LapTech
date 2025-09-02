@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Loader, Target, Award, Heart, Star, ChevronRight, Eye, Lightbulb, Shield, Rocket, Globe, TrendingUp, Laptop, Truck, Package, Play, Check, Clock, MapPin, Phone, Mail, MessageCircle, Calendar, Zap } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function goToWatssap() {
   window.open('https://wa.me/+2001201061216');
@@ -268,10 +269,11 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
 
             <div className="order-1 md:order-2 relative group px-2 md:px-0">
               <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl">
-                <img 
+                <Image 
                   src={aboutData.story.image}
                   alt="Our Story"
-                  className="w-full h-64 sm:h-96 object-cover group-hover:scale-110 transition-transform duration-700"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20"></div>
                 <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6">
@@ -408,10 +410,11 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
                 <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-24 sm:h-32 flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   {brand.logo ? (
-                    <img 
+                    <Image 
                       src={brand.logo} 
                       alt={brand.name} 
-                      className="max-h-10 sm:max-h-16 max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
+                      fill
+                      className="object-contain group-hover:scale-110 transition-transform duration-300"
                     />
                   ) : (
                     <div className="text-lg sm:text-2xl font-bold text-gray-700 group-hover:text-purple-600 transition-colors text-center">
@@ -480,11 +483,14 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
             {aboutData.reviews.map((review) => (
               <div key={review.id} className="bg-gradient-to-br from-white to-gray-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
                 <div className="flex items-center mb-4 sm:mb-6">
-                  <img 
-                    src={review.image} 
-                    alt={review.name}
-                    className="w-12 sm:w-16 h-12 sm:h-16 rounded-full object-cover ml-3 sm:ml-4"
-                  />
+                  <div className="relative w-12 sm:w-16 h-12 sm:h-16 rounded-full overflow-hidden ml-3 sm:ml-4">
+                    <Image 
+                      src={review.image} 
+                      alt={review.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <div>
                     <h4 className="font-bold text-gray-900 text-base sm:text-lg">{review.name}</h4>
                     <p className="text-gray-600 text-sm">{review.role}</p>

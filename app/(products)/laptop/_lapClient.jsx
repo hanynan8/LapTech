@@ -1,4 +1,3 @@
-// app/laptop/_laptopClient.js (Client Component)
 'use client';
 
 import React, {
@@ -37,6 +36,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // دالة WhatsApp المحدثة مع معلومات المنتج
 function goToWatssap(product = null, phoneNumber = '2001201061216') {
@@ -185,6 +185,8 @@ const ProductCard = React.memo(({ product, favorites, toggleFavorite, index, wha
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef();
+  const fallbackImage = 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400';
+  const [currentSrc, setCurrentSrc] = useState(product.image || fallbackImage);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -228,24 +230,22 @@ const ProductCard = React.memo(({ product, favorites, toggleFavorite, index, wha
       <Link href={`/laptop/${product.id}`} className="group block">
         <div className="bg-white rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transform group-hover:scale-105 transition-all duration-300 mx-2 sm:mx-0">
           {/* Product Image */}
-          <div className="relative overflow-hidden bg-gray-100">
+          <div className="relative overflow-hidden bg-gray-100 h-36 sm:h-48">
             {/* Skeleton loader */}
             {!imageLoaded && isVisible && (
-              <div className="w-full h-36 sm:h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
+              <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
             )}
             
             {isVisible && (
-              <img
-                src={product.image || 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400'}
+              <Image
+                src={currentSrc || "file:///C:/Users/DELL/Downloads/photo-1603302576837-37561b2e2302%20(1).webp"} // صورة افتراضية لو مفيش
                 alt={product.name || 'منتج'}
-                loading="lazy"
-                onLoad={() => setImageLoaded(true)}
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400';
-                }}
-                className={`w-full h-36 sm:h-48 object-cover group-hover:scale-110 transition-all duration-700 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
+                fill
+                className={`object-cover group-hover:scale-110 transition-all duration-700 ${
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
                 }`}
+                onLoadingComplete={() => setImageLoaded(true)}
+                onError={() => setCurrentSrc(fallbackImage)}
               />
             )}
 

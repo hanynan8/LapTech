@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Cpu, HardDrive, MonitorSpeaker, Zap, Fan, MemoryStick, Gamepad2, Wifi, ChevronLeft, ChevronRight, ArrowLeft, Menu, X, Home, Grid3X3 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // دالة WhatsApp المحدثة مع معلومات الالمنتجات
 function goToWatssap(product = null, phoneNumber = '2001201061216') {
@@ -138,6 +139,7 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef();
+  const [imgSrc, setImgSrc] = useState(product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -181,29 +183,29 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
       <Link href={`/other/${product.id}`} className="group block">
         <div className="bg-white rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transform group-hover:scale-105 transition-all duration-300 mx-2 sm:mx-0">
           {/* Product Image */}
-          <div className="relative overflow-hidden bg-gray-100">
+          <div className="relative overflow-hidden bg-gray-100 w-full h-36 sm:h-48">
             {/* Skeleton loader */}
             {!imageLoaded && isVisible && (
               <div className="w-full h-36 sm:h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
             )}
             
             {isVisible && (
-              <img
-                src={product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400'}
+              <Image
+                src={imgSrc}
                 alt={product.name || 'منتج'}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400';
-                }}
-                className={`w-full h-36 sm:h-48 object-cover group-hover:scale-110 transition-all duration-700 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
+                onError={() => setImgSrc('https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400')}
+                className={`object-cover group-hover:scale-110 transition-all duration-700 ${
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
                 }`}
               />
             )}
 
             {/* Badges */}
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 right-2 z-10">
               {product.badge && (
                 <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold">
                   {product.badge}
@@ -212,7 +214,7 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
             </div>
 
             {product.discount && (
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 left-2 z-10">
                 <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-bounce">
                   خصم {product.discount}%
                 </span>

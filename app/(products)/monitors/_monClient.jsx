@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Cpu, HardDrive, MonitorSpeaker, Zap, Fan, MemoryStick, Gamepad2, Wifi, ChevronLeft, ChevronRight, ArrowLeft, Menu, X, Home, Grid3X3 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // دالة WhatsApp المحدثة مع معلومات المنتجات
 function goToWatssap(product = null, phoneNumber = '2001201061216') {
@@ -188,9 +189,11 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
             )}
             
             {isVisible && (
-              <img
+              <Image
                 src={product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400'}
                 alt={product.name || 'منتج'}
+                width={400}
+                height={300}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={(e) => {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Cpu, HardDrive, MonitorSpeaker, Zap, Fan, MemoryStick, Gamepad2, Wifi, ChevronLeft, ChevronRight, ArrowLeft, Menu, X, Home, Grid3X3 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // دالة WhatsApp المحدثة مع معلومات نظام بيعات
 function goToWatssap(product = null, phoneNumber = '2001201061216') {
@@ -188,13 +189,15 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
             )}
             
             {isVisible && (
-              <img
-                src={product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400'}
+              <Image
+                src={product.image || 'https://scontent.fcai19-6.fna.fbcdn.net/v/t45.5328-4/483186440_992410976160341_3149618276373415795_n.jpg?_nc_cat=100&cb=99be929b-8ab200a2&ccb=1-7&_nc_sid=247b10&_nc_ohc=XWZGubi42Z4Q7kNvwHQfPie&_nc_oc=Adkv3G13Yp20nOr2RGUp5BZKKgJ6NHRDVcvwg3G3hQdrXJP2Hmd7RstcYTmpC5__0no&_nc_zt=23&_nc_ht=scontent.fcai19-6.fna&_nc_gid=Nl2WyFH-ZWJmR-jEy1PhJA&oh=00_AfX7vyVUnMOuttkvEDNJenYcc3Q9S6c8AggMbk5qF3eOvQ&oe=68BCC31B'}
                 alt={product.name || 'منتج'}
+                width={400}
+                height={300}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400';
+                  e.target.src = 'https://scontent.fcai19-6.fna.fbcdn.net/v/t45.5328-4/483186440_992410976160341_3149618276373415795_n.jpg?_nc_cat=100&cb=99be929b-8ab200a2&ccb=1-7&_nc_sid=247b10&_nc_ohc=XWZGubi42Z4Q7kNvwHQfPie&_nc_oc=Adkv3G13Yp20nOr2RGUp5BZKKgJ6NHRDVcvwg3G3hQdrXJP2Hmd7RstcYTmpC5__0no&_nc_zt=23&_nc_ht=scontent.fcai19-6.fna&_nc_gid=Nl2WyFH-ZWJmR-jEy1PhJA&oh=00_AfX7vyVUnMOuttkvEDNJenYcc3Q9S6c8AggMbk5qF3eOvQ&oe=68BCC31B';
                 }}
                 className={`w-full h-36 sm:h-48 object-cover group-hover:scale-110 transition-all duration-700 ${
                   imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'

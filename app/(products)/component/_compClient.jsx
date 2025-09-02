@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Cpu, HardDrive, MonitorSpeaker, Zap, Fan, MemoryStick, Gamepad2, Wifi, ChevronLeft, ChevronRight, ArrowLeft, Menu, X, Home, Grid3X3 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // دالة WhatsApp المحدثة مع معلومات المكونات
 function goToWatssap(product = null, phoneNumber = '2001201061216') {
@@ -201,9 +202,11 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
             )}
             
             {isVisible && (
-              <img
+              <Image
                 src={product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400'}
                 alt={product.name || 'منتج'}
+                width={400}
+                height={300}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={(e) => {
@@ -693,11 +696,13 @@ const ComputerComponentsClient = ({ initialData, error }) => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="px-4 py-3 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white transition-all duration-300 focus:shadow-lg min-w-48"
                 >
-                  {data.filters && data.filters.sortOptions ? data.filters.sortOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  )) : (
+                  {data.filters && data.filters.sortOptions ? (
+                    data.filters.sortOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))
+                  ) : (
                     <>
                       <option value="name">الاسم</option>
                       <option value="price-low">السعر: من الأقل للأعلى</option>
@@ -710,22 +715,31 @@ const ComputerComponentsClient = ({ initialData, error }) => {
 
               {/* Results Count - مساحة صغيرة */}
               <div className="text-gray-600 font-medium bg-gray-100 px-4 py-3 rounded-full flex-shrink-0">
-                <span className={`transition-all duration-300 ${isSearching ? 'opacity-50' : 'opacity-100'}`}>
+                <span
+                  className={`transition-all duration-300 ${
+                    isSearching ? 'opacity-50' : 'opacity-100'
+                  }`}
+                >
                   {filteredProducts.length} مكون
                 </span>
               </div>
             </div>
 
             {/* Mobile Layout - صف واحد للكل */}
-            <div className="md:hidden" style={{ 
-              paddingTop: showMobileNav ? '0px' : '0px' 
-            }}>
+            <div
+              className="md:hidden"
+              style={{
+                paddingTop: showMobileNav ? '0px' : '0px',
+              }}
+            >
               <div className="flex items-center gap-2">
                 {/* شريط البحث - أكبر مساحة */}
                 <div className="relative flex-1">
-                  <Search className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 ${
-                    isSearching ? 'animate-spin' : ''
-                  }`} />
+                  <Search
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 ${
+                      isSearching ? 'animate-spin' : ''
+                    }`}
+                  />
                   <input
                     type="text"
                     placeholder="ابحث..."
@@ -734,18 +748,20 @@ const ComputerComponentsClient = ({ initialData, error }) => {
                     className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-sm"
                   />
                 </div>
-                
+
                 {/* فلتر التصنيف - متوسط */}
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-28 px-2 py-2.5 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white transition-all duration-300 text-xs"
                 >
-                  {data.filters && data.filters.sortOptions ? data.filters.sortOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  )) : (
+                  {data.filters && data.filters.sortOptions ? (
+                    data.filters.sortOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))
+                  ) : (
                     <>
                       <option value="name">الاسم</option>
                       <option value="price-low">سعر ↑</option>
@@ -755,9 +771,13 @@ const ComputerComponentsClient = ({ initialData, error }) => {
                   )}
                 </select>
 
-                {/* عدد المكونات - أصغر مساحة */}
+                {/* عدد الاكسسواراتات - أصغر مساحة */}
                 <div className="text-gray-600 text-xs font-medium bg-gray-100 px-2 py-2.5 rounded-xl whitespace-nowrap">
-                  <span className={`transition-all duration-300 ${isSearching ? 'opacity-50' : 'opacity-100'}`}>
+                  <span
+                    className={`transition-all duration-300 ${
+                      isSearching ? 'opacity-50' : 'opacity-100'
+                    }`}
+                  >
                     {filteredProducts.length}
                   </span>
                 </div>
@@ -772,12 +792,14 @@ const ComputerComponentsClient = ({ initialData, error }) => {
         <section className="py-4 sm:py-6 bg-gray-50 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap gap-3 justify-center">
-              {data.categories.map(category => {
+              {data.categories.map((category) => {
                 const IconComponent = iconMap[category.icon] || Cpu;
-                const productCount = category.id === 'all' 
-                  ? data.products?.length || 0
-                  : data.products?.filter(p => p.category === category.id).length || 0;
-                
+                const productCount =
+                  category.id === 'all'
+                    ? data.products?.length || 0
+                    : data.products?.filter((p) => p.category === category.id)
+                        .length || 0;
+
                 return (
                   <button
                     key={category.id}
@@ -814,9 +836,13 @@ const ComputerComponentsClient = ({ initialData, error }) => {
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-20 px-4">
               <Cpu className="w-20 h-20 sm:w-24 sm:h-24 text-gray-300 mx-auto mb-4 animate-bounce" />
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-400 mb-2">لا توجد مكونات</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-400 mb-2">
+                لا توجد مكونات
+              </h3>
               <p className="text-gray-500 text-sm sm:text-base">
-                {searchQuery ? 'جرب تغيير كلمات البحث' : 'جرب تغيير معايير الفلترة'}
+                {searchQuery
+                  ? 'جرب تغيير كلمات البحث'
+                  : 'جرب تغيير معايير الفلترة'}
               </p>
               {searchQuery && (
                 <button
@@ -861,20 +887,22 @@ const ComputerComponentsClient = ({ initialData, error }) => {
       <section className="py-12 sm:py-16 bg-gradient-to-r from-purple-600 to-blue-600 relative overflow-hidden mx-4 sm:mx-0 rounded-2xl sm:rounded-none mb-4 sm:mb-0">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">تريد جهاز كمبيوتر كامل؟</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">
+            لم تجد ما تبحث عليه؟
+          </h2>
           <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90">
-            دعنا نساعدك في تجميع جهازك المثالي بأفضل المكونات والأسعار
+            دعنا نساعدك في ايجاد الاكسسوارات بأفضل المكونات والأسعار
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <button 
+            <button
               onClick={() => goToWatssap(null, whatsappNumber)}
               className="bg-white text-purple-600 px-6 sm:px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm sm:text-base"
             >
               استشارة مجانية
             </button>
-            <Link href="/component">
+            <Link href="/accessories">
               <button className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
-                عرض جميع المكونات
+                عرض جميع الاكسسوارات
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" />
               </button>
             </Link>

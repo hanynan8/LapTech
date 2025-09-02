@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronRight, Star, Loader, Truck, Shield, Headphones, Award, ShoppingCart, ArrowRight, Zap, Cpu, MonitorSpeaker, Gamepad2, HardDrive, Smartphone, RefreshCw } from 'lucide-react';
 import WhatsAppButton from '../../(products)/_whatsForDetails'; // Adjust the path based on your project structure
 
@@ -52,11 +53,11 @@ const ProductCard = ({ product, categoryKey }) => {
         <div className="relative overflow-hidden">
           {!imageError ? (
             <>
-              <img
+              <Image
                 src={product.image}
                 alt={product.name}
-                width="400"
-                height="256"
+                width={400}
+                height={256}
                 className={`w-full h-48 sm:h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-700 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                 onLoad={() => setImageLoading(false)}
                 onError={() => setImageError(true)}
@@ -510,9 +511,11 @@ const HomePage = ({ initialData, apiUrl }) => {
                 >
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg group-hover:shadow-2xl transform group-hover:scale-105 transition-all duration-500">
-                      <img
+                      <Image
                         src={category.image}
                         alt={category.imageAlt}
+                        width={600}
+                        height={320}
                         className="w-full h-64 sm:h-72 md:h-80 object-cover group-hover:scale-110 transition-transform duration-700"
                         loading="lazy"
                       />
@@ -547,9 +550,11 @@ const HomePage = ({ initialData, apiUrl }) => {
               {homeData.testimonials.map((testimonial) => (
                 <div key={testimonial.id} className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl sm:rounded-3xl p-8 sm:p-10 md:p-12 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
                   <div className="flex items-center mb-4 sm:mb-6">
-                    <img
+                    <Image
                       src={testimonial.avatar}
                       alt={testimonial.name}
+                      width={80}
+                      height={80}
                       className="w-16 sm:w-20 h-16 sm:h-20 rounded-full ml-4 sm:ml-6"
                       loading="lazy"
                     />

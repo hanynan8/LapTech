@@ -3,16 +3,16 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Cpu, HardDrive, MonitorSpeaker, Zap, Fan, MemoryStick, Gamepad2, Wifi, ChevronLeft, ChevronRight, ArrowLeft, Menu, X, Home, Grid3X3 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image'; // Import Image from next/image
 
-// دالة WhatsApp المحدثة مع معلومات الالطابعاتات
+// دالة WhatsApp المحدثة مع معلومات المنتجات
 function goToWatssap(product = null, phoneNumber = '2001201061216') {
   let message = 'السلام عليكم ورحمة الله وبركاته\n';
 
   if (product) {
-    // رسالة مع معلومات الالطابعات
+    // رسالة مع معلومات المنتج
     message += `أريد الاستفسار عن هذا المنتج:\n\n`;
     message += `🔧 *${product.name}*\n\n`;
-
 
     if (product.specs && Object.keys(product.specs).length > 0) {
       message += `📋 *المواصفات:*\n`;
@@ -21,8 +21,6 @@ function goToWatssap(product = null, phoneNumber = '2001201061216') {
       });
       message += `\n`;
     }
-
-
 
     // السعر
     if (product.price) {
@@ -46,7 +44,7 @@ function goToWatssap(product = null, phoneNumber = '2001201061216') {
       message += `\n⭐ *التقييم:* ${product.rating}/5\n`;
     }
 
-    // صورة الالطابعات (رابط)
+    // صورة المنتج (رابط)
     if (product.image) {
       message += `\n🖼️ *صورة المنتج:*\n${product.image}\n`;
     }
@@ -100,7 +98,7 @@ const MobileMenu = ({ isOpen, onClose, activeCategory, setActiveCategory, catego
         <div className="p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Grid3X3 className="w-5 h-5" />
-            فئات الطابعات
+            فئات المنتجات
           </h3>
           <div className="space-y-3">
             {data?.categories?.map(category => {
@@ -198,13 +196,15 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
             )}
             
             {isVisible && (
-              <img
-                src={product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400'}
+              <Image
+                src={product.image || 'https://scontent.fcai19-6.fna.fbcdn.net/v/t45.5328-4/483186440_992410976160341_3149618276373415795_n.jpg?_nc_cat=100&cb=99be929b-8ab200a2&ccb=1-7&_nc_sid=247b10&_nc_ohc=XWZGubi42Z4Q7kNvwHQfPie&_nc_oc=Adkv3G13Yp20nOr2RGUp5BZKKgJ6NHRDVcvwg3G3hQdrXJP2Hmd7RstcYTmpC5__0no&_nc_zt=23&_nc_ht=scontent.fcai19-6.fna&_nc_gid=Y9g8iAONGM9YmOMxjqSfpw&oh=00_AfU-8oIoFEH9JY8cr2a_QwHXOoBmgFUZB5JD0nn2yHIIbg&oe=68BCC31B'}
                 alt={product.name || 'منتج'}
+                width={400} // Set appropriate width
+                height={192} // Set appropriate height (h-36 = 144px, h-48 = 192px)
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400';
+                  e.target.src = 'https://scontent.fcai19-6.fna.fbcdn.net/v/t45.5328-4/483186440_992410976160341_3149618276373415795_n.jpg?_nc_cat=100&cb=99be929b-8ab200a2&ccb=1-7&_nc_sid=247b10&_nc_ohc=XWZGubi42Z4Q7kNvwHQfPie&_nc_oc=Adkv3G13Yp20nOr2RGUp5BZKKgJ6NHRDVcvwg3G3hQdrXJP2Hmd7RstcYTmpC5__0no&_nc_zt=23&_nc_ht=scontent.fcai19-6.fna&_nc_gid=Y9g8iAONGM9YmOMxjqSfpw&oh=00_AfU-8oIoFEH9JY8cr2a_QwHXOoBmgFUZB5JD0nn2yHIIbg&oe=68BCC31B';
                 }}
                 className={`w-full h-36 sm:h-48 object-cover group-hover:scale-110 transition-all duration-700 ${
                   imageLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'
@@ -346,7 +346,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
     <div className="flex flex-col items-center gap-4 py-6">
       {/* Results Info */}
       <div className="text-gray-600 text-xs sm:text-sm">
-        عرض {startItem}-{endItem} من {totalItems} الطابعات
+        عرض {startItem}-{endItem} من {totalItems} منتجات
       </div>
 
       {/* Pagination Controls */}
@@ -566,7 +566,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
       <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4" dir="rtl">
         <div className="text-center">
           <Cpu className="w-20 h-20 sm:w-24 sm:h-24 text-gray-300 mx-auto mb-4 animate-bounce" />
-          <p className="text-lg sm:text-xl text-gray-600 mb-4">لا توجد بيانات الطابعاتات متاحة</p>
+          <p className="text-lg sm:text-xl text-gray-600 mb-4">لا توجد بيانات المنتجات متاحة</p>
           <p className="text-sm text-gray-500">تم تحميل {data?.products?.length || 0} منتج</p>
         </div>
       </div>
@@ -577,7 +577,6 @@ const ComputerComponentsClient = ({ initialData, error }) => {
     <div className="min-h-screen bg-slate-50" dir="rtl">
       {/* CSS للتحكم في الأنيميشن */}
       <style jsx>{`
-
         @media (max-width: 768px) {
           section {
             top: 64px;
@@ -620,7 +619,6 @@ const ComputerComponentsClient = ({ initialData, error }) => {
             padding-top: 0px;
             transition: padding-top 0.3s ease;
           }
-          
         }
       `}</style>
 
@@ -706,7 +704,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
               {/* Results Count - مساحة صغيرة */}
               <div className="text-gray-600 font-medium bg-gray-100 px-4 py-3 rounded-full flex-shrink-0">
                 <span className={`transition-all duration-300 ${isSearching ? 'opacity-50' : 'opacity-100'}`}>
-                  {filteredProducts.length} طابعة
+                  {filteredProducts.length} منتج
                 </span>
               </div>
             </div>
@@ -856,7 +854,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
       <section className="py-12 sm:py-16 bg-gradient-to-r from-purple-600 to-blue-600 relative overflow-hidden mx-4 sm:mx-0 rounded-2xl sm:rounded-none mb-4 sm:mb-0">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">تريد افضل الطابعات؟</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">تريد افضل المنتجات؟</h2>
           <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90">
             دعنا نساعدك في تجميع جهازك المثالي بأفضل المكونات والأسعار
           </p>
@@ -869,7 +867,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
             </button>
             <Link href="/printers">
               <button className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
-                عرض جميع الطابعات
+                عرض جميع المنتجات
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" />
               </button>
             </Link>

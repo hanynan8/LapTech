@@ -4,8 +4,7 @@ import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
-
-  // دالة إنشاء الصفحات الثابتة للمنتجات
+// دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
     const res = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=printers', {
@@ -38,9 +37,6 @@ export async function generateStaticParams() {
   }
 }
 
-
-
-
 // Server Component للمنتجات المشابهة
 async function RelatedProducts({ product }) {
   // جلب مجموعة منتجات حسب فئة (fallback)
@@ -62,7 +58,6 @@ async function RelatedProducts({ product }) {
 
   // جلب منتجات من نفس الفئة
   async function fetchRelatedProducts(category, currentProductId, limit = 8) {
-    // RELATED PRODUCTS - البحث في نفس الفئة
     const DESIRED_RELATED_COUNT = limit;
     let relatedProducts = [];
 
@@ -86,8 +81,8 @@ async function RelatedProducts({ product }) {
   if (relatedProducts.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {relatedProducts.map((product, index) => (
@@ -95,7 +90,7 @@ async function RelatedProducts({ product }) {
             key={`related-${product.id}-${index}`} 
             href={`/printers/${product.id}`} 
             className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
-            prefetch={false} // تحسين الأداء
+            prefetch={false}
           >
             <div className="relative mb-4">
               <img 
@@ -112,12 +107,12 @@ async function RelatedProducts({ product }) {
               )}
             </div>
             
-            <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
+            <h3 className="font-bold text-base sm:text-lg mb-2 text-gray-900 line-clamp-2">
               {product.name}
             </h3>
             
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xl font-bold text-purple-600">
+              <div className="text-lg sm:text-xl font-bold text-purple-600">
                 {formatPrice(product.price)} {product.currency || 'ج.م'}
               </div>
               {product.rating && (
@@ -159,16 +154,16 @@ function TechnicalSpecs({ specs }) {
   if (validSpecs.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
       
       <div className="info-grid">
         {validSpecs.map(([key, value]) => (
           <div key={key} className="spec-card card-hover">
-            <h4 className="font-bold text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
+            <h4 className="font-bold text-base sm:text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
               {specLabels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
             </h4>
-            <div className="text-gray-700">
+            <div className="text-gray-700 text-sm sm:text-base">
               {Array.isArray(value) ? (
                 <ul className="space-y-2">
                   {value.map((item, idx) => (
@@ -213,16 +208,16 @@ function BenchmarksSection({ benchmarks }) {
   if (validBenchmarks.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">معايير الأداء</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">معايير الأداء</h2>
       
       <div className="info-grid">
         {validBenchmarks.map(([key, value]) => (
           <div key={key} className="spec-card card-hover bg-red-50 border-red-200">
-            <h4 className="font-bold text-lg text-red-700 mb-3 border-b border-red-200 pb-2">
+            <h4 className="font-bold text-base sm:text-lg text-red-700 mb-3 border-b border-red-200 pb-2">
               {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
             </h4>
-            <div className="text-red-800">
+            <div className="text-red-800 text-sm sm:text-base">
               {Array.isArray(value) ? (
                 <ul className="space-y-2">
                   {value.map((item, idx) => (
@@ -261,14 +256,14 @@ function FeaturesSection({ features }) {
   if (!features || !Array.isArray(features) || features.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المزايا والخصائص</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">المزايا والخصائص</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {features.map((feature, index) => (
           <div key={`feature-${index}`} className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
             <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
-            <span className="text-green-800 font-medium">{feature}</span>
+            <span className="text-green-800 font-medium text-sm sm:text-base">{feature}</span>
           </div>
         ))}
       </div>
@@ -281,14 +276,14 @@ function PortsSection({ ports }) {
   if (!ports || !Array.isArray(ports) || ports.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منافذ الاتصال</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">منافذ الاتصال</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {ports.map((port, index) => (
           <div key={`port-${index}`} className="flex items-center gap-3 p-4 bg-cyan-50 rounded-xl border border-cyan-200">
             <div className="w-3 h-3 bg-cyan-500 rounded-full flex-shrink-0"></div>
-            <span className="text-cyan-800 font-medium">{port}</span>
+            <span className="text-cyan-800 font-medium text-sm sm:text-base">{port}</span>
           </div>
         ))}
       </div>
@@ -301,14 +296,14 @@ function SupportedOSSection({ supportedOS }) {
   if (!supportedOS || !Array.isArray(supportedOS) || supportedOS.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">أنظمة التشغيل المدعومة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">أنظمة التشغيل المدعومة</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {supportedOS.map((os, index) => (
           <div key={`os-${index}`} className="flex items-center gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
             <div className="w-3 h-3 bg-indigo-500 rounded-full flex-shrink-0"></div>
-            <span className="text-indigo-800 font-medium">{os}</span>
+            <span className="text-indigo-800 font-medium text-sm sm:text-base">{os}</span>
           </div>
         ))}
       </div>
@@ -321,14 +316,14 @@ function ConsumablesSection({ consumables }) {
   if (!consumables || !Array.isArray(consumables) || consumables.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواد الاستهلاكية</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">المواد الاستهلاكية</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {consumables.map((consumable, index) => (
           <div key={`consumable-${index}`} className="flex items-center gap-3 p-4 bg-orange-50 rounded-xl border border-orange-200">
             <div className="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0"></div>
-            <span className="text-orange-800 font-medium">{consumable}</span>
+            <span className="text-orange-800 font-medium text-sm sm:text-base">{consumable}</span>
           </div>
         ))}
       </div>
@@ -355,8 +350,8 @@ export default async function ProductDetailsPage({ params }) {
       const res = await fetch(
         `https://restaurant-back-end.vercel.app/api/data?collection=printers&id=${id}`,
         { 
-          next: { revalidate: 900 }, // تحسين مدة التخزين المؤقت
-          signal: AbortSignal.timeout(8000) // timeout أطول للبيانات المهمة
+          next: { revalidate: 900 },
+          signal: AbortSignal.timeout(8000)
         }
       );
       
@@ -421,7 +416,7 @@ export default async function ProductDetailsPage({ params }) {
           bottom: 0;
           background: rgba(0, 0, 0, 0.85);
           z-index: 1000;
-          padding: 2rem;
+          padding: 1rem;
         }
         .lightbox:target { 
           display: flex; 
@@ -429,7 +424,7 @@ export default async function ProductDetailsPage({ params }) {
         
         .lightbox-content {
           position: relative;
-          max-width: 90vw;
+          max-width: 95vw;
           max-height: 90vh;
           display: flex;
           align-items: center;
@@ -458,7 +453,7 @@ export default async function ProductDetailsPage({ params }) {
         .lightbox-close {
           position: absolute;
           top: -40px;
-          right: -10px;
+          right: 0;
           width: 30px;
           height: 30px;
           border-radius: 50%;
@@ -473,30 +468,30 @@ export default async function ProductDetailsPage({ params }) {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: bold;
-          font-size: 1.5rem;
+          font-size: 1rem;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .lightbox-prev { left: 20px; }
-        .lightbox-next { right: 20px; }
+        .lightbox-prev { left: 10px; }
+        .lightbox-next { right: 10px; }
 
         .info-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1rem;
         }
 
         .spec-card {
           background: white;
           border-radius: 1rem;
-          padding: 1.5rem;
+          padding: 1rem;
           border: 1px solid #e5e7eb;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
@@ -513,22 +508,22 @@ export default async function ProductDetailsPage({ params }) {
         
         {/* Header Section */}
         <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-8 fade-in">
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 p-8">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 p-4 sm:p-8">
             
             {/* صور المنتج */}
             <div className="xl:col-span-2">
               <div className="sticky top-8">
                 {/* الصورة الرئيسية */}
-                <div className="bg-gray-50 rounded-2xl p-6 mb-6 relative">
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 mb-6 relative">
                   <img
                     src={images[0] || product.image || '/placeholder.jpg'}
                     alt={product.name}
-                    className="w-full h-80 object-contain"
+                    className="w-full h-64 sm:h-80 object-contain"
                     loading="eager"
                     decoding="sync"
                   />
                   {product.badge && (
-                    <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
                       {product.badge}
                     </span>
                   )}
@@ -536,13 +531,13 @@ export default async function ProductDetailsPage({ params }) {
 
                 {/* معرض مصغر */}
                 {Array.isArray(images) && images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
                     {images.slice(0, 4).map((src, i) => (
                       <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover relative">
                         <img 
                           src={src} 
                           alt={`${product.name} ${i + 1}`} 
-                          className="w-full h-16 object-cover rounded-lg"
+                          className="w-full h-12 sm:h-16 object-cover rounded-lg"
                           loading="lazy"
                           decoding="async"
                         />
@@ -551,38 +546,38 @@ export default async function ProductDetailsPage({ params }) {
                   </div>
                 )}
 
-                {/* معلومات سريعة */}
-                <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
-                  <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
+                {/* معلومات سريعة - تظهر في الشاشات الكبيرة فقط */}
+                <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 mt-6 hidden xl:block">
+                  <h3 className="font-bold text-base sm:text-lg mb-4 text-gray-900">معلومات المنتج</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الحالة</span>
-                      <span className={`font-semibold ${isAvailable ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className="text-gray-600 text-sm sm:text-base">الحالة</span>
+                      <span className={`font-semibold text-sm sm:text-base ${isAvailable ? 'text-green-600' : 'text-red-500'}`}>
                         {isAvailable ? `متوفر (${product.stock})` : 'غير متوفر'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">رقم المنتج</span>
-                      <span className="font-medium text-gray-900">{product.id || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">رقم المنتج</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{product.id || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الموديل</span>
-                      <span className="font-medium text-gray-900">{product.model || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الموديل</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{product.model || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الشركة المصنعة</span>
-                      <span className="font-medium text-gray-900">{product.manufacturer || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الشركة المصنعة</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{product.manufacturer || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الضمان</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-gray-600 text-sm sm:text-base">الضمان</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">
                         {product.warrantyMonths ? `${product.warrantyMonths} شهر` : '—'}
                       </span>
                     </div>
                     {product.weightKg && (
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">الوزن</span>
-                        <span className="font-medium text-gray-900">{product.weightKg} كجم</span>
+                        <span className="text-gray-600 text-sm sm:text-base">الوزن</span>
+                        <span className="font-medium text-gray-900 text-sm sm:text-base">{product.weightKg} كجم</span>
                       </div>
                     )}
                   </div>
@@ -595,8 +590,8 @@ export default async function ProductDetailsPage({ params }) {
               
               {/* اسم المنتج والسعر */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <span className="bg-purple-100 text-purple-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                     {product.category}
                   </span>
                   {product.rating && (
@@ -613,10 +608,10 @@ export default async function ProductDetailsPage({ params }) {
                   )}
                 </div>
 
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
                 
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="text-4xl font-bold text-purple-600">
+                <div className="flex items-center gap-4 mb-6 flex-wrap">
+                  <div className="text-2xl sm:text-3xl font-bold text-purple-600">
                     {formatPrice(product.price)} {product.currency || 'ج.م'}
                   </div>
                 </div>
@@ -624,15 +619,15 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* مواصفات سريعة */}
               {specs && Object.keys(specs).length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {Object.entries(specs).slice(0, 4).map(([key, value], i) => (
-                    <div key={`quick-spec-${i}`} className={`p-4 rounded-xl ${
+                    <div key={`quick-spec-${i}`} className={`p-3 sm:p-4 rounded-xl ${
                       i === 0 ? 'bg-blue-50 text-blue-700' :
                       i === 1 ? 'bg-green-50 text-green-700' :
                       i === 2 ? 'bg-purple-50 text-purple-700' :
                       'bg-orange-50 text-orange-700'
                     }`}>
-                      <div className="text-sm font-semibold mb-1">
+                      <div className="text-xs sm:text-sm font-semibold mb-1">
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                       </div>
                       <div className="text-xs font-medium truncate" title={Array.isArray(value) ? value.join(', ') : String(value)}>
@@ -644,9 +639,9 @@ export default async function ProductDetailsPage({ params }) {
               )}
 
               {/* أزرار الإجراء */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 sm:gap-4 pt-4 flex-wrap">
                 <button 
-                  className={`flex-1 py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
+                  className={`flex-1 min-w-40 py-3 sm:py-4 px-6 sm:px-8 rounded-2xl font-bold text-base sm:text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
                     isAvailable
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -655,33 +650,71 @@ export default async function ProductDetailsPage({ params }) {
                 >
                   {isAvailable ? 'اطلب الآن' : 'غير متوفر'}
                 </button>
-                <button className="px-8 py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors text-sm sm:text-base">
                   المفضلة
                 </button>
               </div>
 
               {/* الوصف */}
               {product.description && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">وصف المنتج</h3>
-                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">وصف المنتج</h3>
+                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.description}</p>
                 </div>
               )}
 
-              {/* الميزات */}
+                           {/* الميزات */}
               {features && features.length > 0 && (
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">الميزات الرئيسية</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">الميزات الرئيسية</h3>
+                  <div className="grid grid-cols-1 gap-3">
                     {features.map((feature, index) => (
                       <div key={`feature-${index}`} className="flex items-center gap-3 p-3 bg-white rounded-xl">
                         <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
-                        <span className="text-gray-700 font-medium">{feature}</span>
+                        <span className="text-gray-700 font-medium text-sm sm:text-base">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* معلومات سريعة - تظهر في الشاشات الصغيرة فقط */}
+              <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 xl:hidden">
+                <h3 className="font-bold text-base sm:text-lg mb-4 text-gray-900">معلومات المنتج</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الحالة</span>
+                    <span className={`font-semibold text-sm sm:text-base ${isAvailable ? 'text-green-600' : 'text-red-500'}`}>
+                      {isAvailable ? `متوفر (${product.stock})` : 'غير متوفر'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">رقم المنتج</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{product.id || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الموديل</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{product.model || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الشركة المصنعة</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{product.manufacturer || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الضمان</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">
+                      {product.warrantyMonths ? `${product.warrantyMonths} شهر` : '—'}
+                    </span>
+                  </div>
+                  {product.weightKg && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm sm:text-base">الوزن</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{product.weightKg} كجم</span>
+                    </div>
+                  )}
+                </div>
+              </aside>
+
             </div>
           </div>
         </header>
@@ -706,11 +739,11 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* منتجات ذات صلة مع Suspense لتحسين الأداء */}
         <Suspense fallback={
-          <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+          <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
             <div className="text-center">
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-8"></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {[...Array(4)].map((_, i) => (
                     <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
                       <div className="bg-gray-200 h-40 rounded-xl mb-4"></div>
@@ -727,88 +760,88 @@ export default async function ProductDetailsPage({ params }) {
         </Suspense>
 
         {/* تفاصيل إضافية */}
-        <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">تفاصيل إضافية</h2>
+        <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">تفاصيل إضافية</h2>
           
           <div className="info-grid">
             {product.manufacturer && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   الشركة المصنعة
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.manufacturer}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.manufacturer}</div>
               </div>
             )}
 
             {product.model && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   الموديل
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.model}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.model}</div>
               </div>
             )}
 
             {product.id && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   رقم المنتج
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.id}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.id}</div>
               </div>
             )}
 
             {product.warrantyMonths && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   فترة الضمان
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.warrantyMonths} شهر</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.warrantyMonths} شهر</div>
               </div>
             )}
 
             {product.weightKg && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   الوزن
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.weightKg} كجم</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.weightKg} كجم</div>
               </div>
             )}
 
             {product.dimensionsCm && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   الأبعاد
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.dimensionsCm}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.dimensionsCm}</div>
               </div>
             )}
 
             {product.powerConsumptionW && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   استهلاك الطاقة
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.powerConsumptionW}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.powerConsumptionW}</div>
               </div>
             )}
 
             {product.performanceScore && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   نقاط الأداء
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.performanceScore}/100</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.performanceScore}/100</div>
               </div>
             )}
 
             {product.stock !== undefined && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   الكمية المتاحة
                 </h4>
-                <div className={`leading-relaxed font-semibold ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`leading-relaxed font-semibold text-sm sm:text-base ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {product.stock > 0 ? `${product.stock} قطعة` : 'غير متوفر'}
                 </div>
               </div>
@@ -816,19 +849,19 @@ export default async function ProductDetailsPage({ params }) {
 
             {product.category && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   الفئة
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.category}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.category}</div>
               </div>
             )}
 
             {product.availability && (
               <div className="spec-card card-hover">
-                <h4 className="font-bold text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
+                <h4 className="font-bold text-base sm:text-lg text-gray-700 mb-3 border-b border-gray-200 pb-2">
                   حالة التوفر
                 </h4>
-                <div className="text-gray-700 leading-relaxed">{product.availability}</div>
+                <div className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.availability}</div>
               </div>
             )}
           </div>

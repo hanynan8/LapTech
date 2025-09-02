@@ -152,7 +152,7 @@ const structuredData = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="ltr">
+    <html lang="ar" dir="rtl">
       <body
         className={`${rubik.className} ${geistMono.variable} antialiased bg-white text-gray-900`}
       >

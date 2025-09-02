@@ -120,22 +120,22 @@ async function RelatedProducts({ laptop }) {
   if (relatedProducts.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 md:p-8 mb-8 fade-in">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">منتجات مشابهة</h2>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {relatedProducts.map((product, index) => (
           <Link 
             key={`related-${product.id}-${index}`} 
             href={`/laptop/${product.id}`} 
-            className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
+            className="bg-gray-50 rounded-2xl p-3 md:p-4 card-hover border border-gray-200"
             prefetch={false} // تحسين الأداء
           >
-            <div className="relative mb-4">
+            <div className="relative mb-3 md:mb-4">
               <img 
                 src={product.image} 
                 alt={product.name} 
-                className="w-full h-40 object-contain"
+                className="w-full h-32 md:h-40 object-contain"
                 loading="lazy"
                 decoding="async"
               />
@@ -146,12 +146,12 @@ async function RelatedProducts({ laptop }) {
               )}
             </div>
             
-            <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
+            <h3 className="font-bold text-base md:text-lg mb-2 text-gray-900 line-clamp-2">
               {product.name}
             </h3>
             
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xl font-bold text-purple-600">
+              <div className="text-lg md:text-xl font-bold text-purple-600">
                 {formatPrice(product.price)} {product.currency || 'ج.م'}
               </div>
               {product.rating && (
@@ -199,13 +199,13 @@ function TechnicalSpecs({ specs }) {
   if (validSpecs.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 md:p-8 mb-8 fade-in">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">المواصفات التقنية الكاملة</h2>
       
       <div className="info-grid">
         {validSpecs.map(([key, value]) => (
           <div key={key} className="spec-card card-hover">
-            <h4 className="font-bold text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
+            <h4 className="font-bold text-base md:text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
               {specLabels[key] || key}
             </h4>
             <div className="text-gray-700">
@@ -214,12 +214,12 @@ function TechnicalSpecs({ specs }) {
                   {value.map((item, idx) => (
                     <li key={`spec-item-${idx}`} className="flex items-start gap-2">
                       <span className="w-1 h-1 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
-                      <span className="leading-relaxed">{item}</span>
+                      <span className="leading-relaxed text-sm md:text-base">{item}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="leading-relaxed">{String(value)}</div>
+                <div className="leading-relaxed text-sm md:text-base">{String(value)}</div>
               )}
             </div>
           </div>
@@ -234,33 +234,33 @@ function ReviewsSection({ reviews }) {
   if (!reviews || !reviews.count || reviews.count === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">آراء العملاء</h2>
-        <div className="flex items-center justify-center gap-4">
-          <div className="flex text-yellow-400 text-2xl">
+    <section className="bg-white rounded-3xl shadow-lg p-4 md:p-8 mb-8 fade-in">
+      <div className="text-center mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">آراء العملاء</h2>
+        <div className="flex items-center justify-center gap-2 md:gap-4">
+          <div className="flex text-yellow-400 text-xl md:text-2xl">
             {[...Array(5)].map((_, i) => (
               <span key={`star-${i}`}>{i < Math.floor(reviews.avgRating) ? '★' : '☆'}</span>
             ))}
           </div>
-          <span className="text-2xl font-bold text-gray-900">{reviews.avgRating}</span>
-          <span className="text-gray-600">({reviews.count} مراجعة)</span>
+          <span className="text-xl md:text-2xl font-bold text-gray-900">{reviews.avgRating}</span>
+          <span className="text-gray-600 text-sm md:text-base">({reviews.count} مراجعة)</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         {reviews.items?.slice(0, 6).map((review, index) => (
-          <div key={`review-${review.user}-${index}`} className="review-card rounded-xl p-6 card-hover">
+          <div key={`review-${review.user}-${index}`} className="review-card rounded-xl p-4 md:p-6 card-hover">
             <div className="flex items-center justify-between mb-3">
-              <div className="font-bold text-lg text-purple-700">{review.user}</div>
+              <div className="font-bold text-base md:text-lg text-purple-700">{review.user}</div>
               <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => (
-                  <span key={`review-star-${i}`}>{i < review.rating ? '★' : '☆'}</span>
+                  <span key={`review-star-${i}`} className="text-sm md:text-base">{i < review.rating ? '★' : '☆'}</span>
                 ))}
               </div>
             </div>
-            <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
-            <div className="text-sm text-gray-500">{formatDate(review.date)}</div>
+            <p className="text-gray-700 mb-3 leading-relaxed text-sm md:text-base">{review.comment}</p>
+            <div className="text-xs md:text-sm text-gray-500">{formatDate(review.date)}</div>
           </div>
         ))}
       </div>
@@ -356,7 +356,7 @@ export default async function ProductDetailsPage({ params }) {
           bottom: 0;
           background: rgba(0, 0, 0, 0.85);
           z-index: 1000;
-          padding: 2rem;
+          padding: 1rem;
         }
         .lightbox:target { 
           display: flex; 
@@ -364,15 +364,15 @@ export default async function ProductDetailsPage({ params }) {
         
         .lightbox-content {
           position: relative;
-          max-width: 90vw;
-          max-height: 90vh;
+          max-width: 95vw;
+          max-height: 95vh;
           display: flex;
           align-items: center;
           justify-content: center;
         }
         
         .lightbox img { 
-          max-height: 80vh; 
+          max-height: 85vh; 
           width: auto; 
           max-width: 100%; 
           border-radius: 0.5rem;
@@ -424,16 +424,29 @@ export default async function ProductDetailsPage({ params }) {
 
         .info-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+          .info-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+          }
         }
 
         .spec-card {
           background: white;
           border-radius: 1rem;
-          padding: 1.5rem;
+          padding: 1rem;
           border: 1px solid #e5e7eb;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (min-width: 768px) {
+          .spec-card {
+            padding: 1.5rem;
+          }
         }
 
         .review-card {
@@ -448,33 +461,49 @@ export default async function ProductDetailsPage({ params }) {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        
+        @media (max-width: 640px) {
+          .lightbox-nav {
+            width: 35px;
+            height: 35px;
+            font-size: 1.2rem;
+          }
+          .lightbox-prev { left: 10px; }
+          .lightbox-next { right: 10px; }
+          .lightbox-close {
+            top: -35px;
+            right: -5px;
+            width: 28px;
+            height: 28px;
+          }
+        }
       `}</style>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-8">
         
         {/* Header Section */}
-        <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-8 fade-in">
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 p-8">
+        <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6 md:mb-8 fade-in">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 md:gap-8 p-4 md:p-8">
             
             {/* صور المنتج */}
             <div className="xl:col-span-2">
-              <div className="sticky top-8">
+              <div className="xl:sticky xl:top-8">
                 {/* الصورة الرئيسية */}
-                <div className="bg-gray-50 rounded-2xl p-6 mb-6 relative">
+                <div className="bg-gray-50 rounded-2xl p-4 md:p-6 mb-4 md:mb-6 relative">
                   <img
                     src={laptop.image || laptop.details?.gallery?.[0] || ''}
                     alt={laptop.name}
-                    className="w-full h-80 object-contain"
+                    className="w-full h-60 md:h-80 object-contain"
                     loading="eager"
                     decoding="sync"
                   />
                   {laptop.badge && (
-                    <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    <span className="absolute top-2 md:top-4 right-2 md:right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg">
                       {laptop.badge}
                     </span>
                   )}
                   {laptop.discount && (
-                    <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <span className="absolute top-2 md:top-4 left-2 md:left-4 bg-red-500 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-bold">
                       خصم {laptop.discount}%
                     </span>
                   )}
@@ -482,13 +511,13 @@ export default async function ProductDetailsPage({ params }) {
 
                 {/* معرض مصغر */}
                 {Array.isArray(laptop.details?.gallery) && laptop.details.gallery.length > 0 && (
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-0">
                     {laptop.details.gallery.slice(0, 4).map((src, i) => (
-                      <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover relative">
+                      <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-1 md:p-2 card-hover relative">
                         <img 
                           src={src} 
                           alt={`${laptop.name} ${i + 1}`} 
-                          className="w-full h-16 object-cover rounded-lg"
+                          className="w-full h-12 md:h-16 object-cover rounded-lg"
                           loading="lazy"
                           decoding="async"
                         />
@@ -497,29 +526,29 @@ export default async function ProductDetailsPage({ params }) {
                   </div>
                 )}
 
-                {/* معلومات سريعة */}
-                <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
-                  <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
-                  <div className="space-y-3">
+                {/* معلومات سريعة - الشاشات الكبيرة فقط */}
+                <aside className="bg-gray-50 rounded-2xl p-4 md:p-6 mt-4 md:mt-6 hidden xl:block">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-gray-900">معلومات المنتج</h3>
+                  <div className="space-y-2 md:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الحالة</span>
-                      <span className={`font-semibold ${laptop.details?.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className="text-gray-600 text-sm md:text-base">الحالة</span>
+                      <span className={`font-semibold text-sm md:text-base ${laptop.details?.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
                         {laptop.details?.stock > 0 ? `متوفر (${laptop.details.stock})` : 'غير متوفر'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">رقم المنتج</span>
-                      <span className="font-medium text-gray-900">{laptop.details?.sku || '—'}</span>
+                      <span className="text-gray-600 text-sm md:text-base">رقم المنتج</span>
+                      <span className="font-medium text-gray-900 text-sm md:text-base">{laptop.details?.sku || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الضمان</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-gray-600 text-sm md:text-base">الضمان</span>
+                      <span className="font-medium text-gray-900 text-sm md:text-base">
                         {laptop.details?.warrantyMonths ? `${laptop.details.warrantyMonths} شهر` : '—'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">تاريخ الإصدار</span>
-                      <span className="font-medium text-gray-900">{formatDate(laptop.details?.releaseDate)}</span>
+                      <span className="text-gray-600 text-sm md:text-base">تاريخ الإصدار</span>
+                      <span className="font-medium text-gray-900 text-sm md:text-base">{formatDate(laptop.details?.releaseDate)}</span>
                     </div>
                   </div>
                 </aside>
@@ -527,36 +556,36 @@ export default async function ProductDetailsPage({ params }) {
             </div>
 
             {/* تفاصيل المنتج */}
-            <div className="xl:col-span-3 space-y-6">
+            <div className="xl:col-span-3 space-y-4 md:space-y-6">
               
               {/* اسم المنتج والسعر */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3 flex-wrap">
+                  <span className="bg-purple-100 text-purple-700 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium">
                     {laptop.category}
                   </span>
                   {laptop.rating && (
                     <div className="flex items-center gap-1">
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                          <span key={`product-star-${i}`} className="text-sm">
+                          <span key={`product-star-${i}`} className="text-xs md:text-sm">
                             {i < Math.floor(laptop.rating) ? '★' : '☆'}
                           </span>
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600">({laptop.rating})</span>
+                      <span className="text-xs md:text-sm text-gray-600">({laptop.rating})</span>
                     </div>
                   )}
                 </div>
 
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{laptop.name}</h1>
+                <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4 leading-tight">{laptop.name}</h1>
                 
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="text-4xl font-bold text-purple-600">
+                <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6 flex-wrap">
+                  <div className="text-2xl md:text-4xl font-bold text-purple-600">
                     {formatPrice(laptop.price)} {laptop.currency || 'ج.م'}
                   </div>
                   {laptop.originalPrice && (
-                    <div className="text-xl text-gray-500 line-through">
+                    <div className="text-lg md:text-xl text-gray-500 line-through">
                       {formatPrice(laptop.originalPrice)} {laptop.currency || 'ج.م'}
                     </div>
                   )}
@@ -564,15 +593,15 @@ export default async function ProductDetailsPage({ params }) {
               </div>
 
               {/* مواصفات سريعة */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
                 {[
                   { label: 'المعالج', value: laptop.specs?.processor || specs.cpu, color: 'bg-blue-50 text-blue-700' },
                   { label: 'الذاكرة', value: laptop.specs?.ram || specs.ram, color: 'bg-green-50 text-green-700' },
                   { label: 'التخزين', value: laptop.specs?.storage || specs.storage, color: 'bg-purple-50 text-purple-700' },
                   { label: 'الرسوميات', value: laptop.specs?.graphics || specs.gpu, color: 'bg-orange-50 text-orange-700' }
                 ].map((item, i) => (
-                  <div key={`quick-spec-${i}`} className={`p-4 rounded-xl ${item.color}`}>
-                    <div className="text-sm font-semibold mb-1">{item.label}</div>
+                  <div key={`quick-spec-${i}`} className={`p-3 md:p-4 rounded-xl ${item.color}`}>
+                    <div className="text-xs md:text-sm font-semibold mb-1">{item.label}</div>
                     <div className="text-xs font-medium truncate" title={item.value}>
                       {item.value || '—'}
                     </div>
@@ -581,37 +610,64 @@ export default async function ProductDetailsPage({ params }) {
               </div>
 
               {/* أزرار الإجراء */}
-              <div className="flex gap-4 pt-4">
-                <button className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex gap-3 md:gap-4 pt-3 md:pt-4">
+                <button className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 md:py-4 px-4 md:px-8 rounded-2xl font-bold text-base md:text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                   اطلب الآن
                 </button>
-                <button className="px-8 py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors">
+                <button className="px-4 md:px-8 py-3 md:py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors text-sm md:text-base">
                   المفضلة
                 </button>
               </div>
 
               {/* الوصف */}
               {laptop.details?.longDescription && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">وصف المنتج</h3>
-                  <p className="text-gray-700 leading-relaxed">{laptop.details.longDescription}</p>
+                <div className="bg-gray-50 rounded-2xl p-4 md:p-6">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">وصف المنتج</h3>
+                  <p className="text-gray-700 leading-relaxed text-sm md:text-base">{laptop.details.longDescription}</p>
                 </div>
               )}
 
               {/* الميزات */}
               {laptop.features && laptop.features.length > 0 && (
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">الميزات الرئيسية</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-4 md:p-6">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">الميزات الرئيسية</h3>
+                  <div className="grid grid-cols-1 gap-2 md:gap-3">
                     {laptop.features.map((feature, index) => (
-                      <div key={`feature-${index}`} className="flex items-center gap-3 p-3 bg-white rounded-xl">
+                      <div key={`feature-${index}`} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-white rounded-xl">
                         <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
-                        <span className="text-gray-700 font-medium">{feature}</span>
+                        <span className="text-gray-700 font-medium text-sm md:text-base">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* معلومات سريعة - الشاشات الصغيرة فقط */}
+              <aside className="bg-gray-50 rounded-2xl p-4 md:p-6 block xl:hidden">
+                <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-gray-900">معلومات المنتج</h3>
+                <div className="space-y-2 md:space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm md:text-base">الحالة</span>
+                    <span className={`font-semibold text-sm md:text-base ${laptop.details?.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {laptop.details?.stock > 0 ? `متوفر (${laptop.details.stock})` : 'غير متوفر'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm md:text-base">رقم المنتج</span>
+                    <span className="font-medium text-gray-900 text-sm md:text-base">{laptop.details?.sku || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm md:text-base">الضمان</span>
+                    <span className="font-medium text-gray-900 text-sm md:text-base">
+                      {laptop.details?.warrantyMonths ? `${laptop.details.warrantyMonths} شهر` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm md:text-base">تاريخ الإصدار</span>
+                    <span className="font-medium text-gray-900 text-sm md:text-base">{formatDate(laptop.details?.releaseDate)}</span>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
         </header>
@@ -624,16 +680,16 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* منتجات ذات صلة مع Suspense لتحسين الأداء */}
         <Suspense fallback={
-          <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+          <div className="bg-white rounded-3xl shadow-lg p-4 md:p-8 mb-6 md:mb-8 fade-in">
             <div className="text-center">
               <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-8"></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="h-6 md:h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-6 md:mb-8"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                   {[...Array(4)].map((_, i) => (
-                    <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-                      <div className="bg-gray-200 h-40 rounded-xl mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-3 md:p-4 border border-gray-200">
+                      <div className="bg-gray-200 h-32 md:h-40 rounded-xl mb-3 md:mb-4"></div>
+                      <div className="h-3 md:h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4"></div>
                     </div>
                   ))}
                 </div>
@@ -646,11 +702,11 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* الملحقات */}
         {Array.isArray(laptop.details?.accessories) && laptop.details.accessories.length > 0 && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 fade-in">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">الملحقات المقترحة</h3>
-            <div className="flex flex-wrap gap-3">
+          <section className="bg-white rounded-3xl shadow-lg p-4 md:p-8 fade-in">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">الملحقات المقترحة</h3>
+            <div className="flex flex-wrap gap-2 md:gap-3">
               {laptop.details.accessories.map((accessory, index) => (
-                <span key={`accessory-${index}`} className="px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200">
+                <span key={`accessory-${index}`} className="px-3 md:px-4 py-1 md:py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-full text-xs md:text-sm font-medium border border-purple-200">
                   {accessory}
                 </span>
               ))}

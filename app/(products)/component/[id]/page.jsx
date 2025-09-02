@@ -4,9 +4,7 @@ import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
-
-
-  // دالة إنشاء الصفحات الثابتة للمنتجات
+// دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
     const res = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=component', {
@@ -38,8 +36,6 @@ export async function generateStaticParams() {
     return [];
   }
 }
-
-
 
 // Server Component للمنتجات المشابهة
 async function RelatedProducts({ component }) {
@@ -323,7 +319,6 @@ function formatDate(dateStr) {
 }
 
 export default async function ComponentDetailsPage({ params }) {
-
   const resolvedParams = await params;
 
   // جلب المنتج الرئيسي مع تحسينات
@@ -386,7 +381,7 @@ export default async function ComponentDetailsPage({ params }) {
           bottom: 0;
           background: rgba(0, 0, 0, 0.85);
           z-index: 1000;
-          padding: 2rem;
+          padding: 1rem;
         }
         .lightbox:target { 
           display: flex; 
@@ -394,7 +389,7 @@ export default async function ComponentDetailsPage({ params }) {
         
         .lightbox-content {
           position: relative;
-          max-width: 90vw;
+          max-width: 95vw;
           max-height: 90vh;
           display: flex;
           align-items: center;
@@ -422,46 +417,47 @@ export default async function ComponentDetailsPage({ params }) {
         
         .lightbox-close {
           position: absolute;
-          top: -40px;
-          right: -10px;
-          width: 30px;
-          height: 30px;
+          top: -30px;
+          right: 0;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: bold;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+          font-size: 0.875rem;
         }
         
         .lightbox-nav {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
-          width: 40px;
-          height: 40px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: bold;
-          font-size: 1.5rem;
+          font-size: 1rem;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .lightbox-prev { left: 20px; }
-        .lightbox-next { right: 20px; }
+        .lightbox-prev { left: 10px; }
+        .lightbox-next { right: 10px; }
 
         .info-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          gap: 1rem;
         }
 
         .spec-card {
           background: white;
           border-radius: 1rem;
-          padding: 1.5rem;
+          padding: 1rem;
           border: 1px solid #e5e7eb;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
@@ -477,6 +473,176 @@ export default async function ComponentDetailsPage({ params }) {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 640px) {
+          .max-w-7xl {
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+
+          .grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+          }
+
+          .grid-cols-2 {
+            grid-template-columns: 1fr;
+          }
+
+          .grid-cols-1.md\\:grid-cols-2 {
+            grid-template-columns: 1fr;
+          }
+
+          .grid-cols-1.xl\\:grid-cols-5 {
+            grid-template-columns: 1fr;
+          }
+
+          .info-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+          }
+
+          .text-4xl {
+            font-size: 1.75rem;
+            line-height: 2rem;
+          }
+
+          .text-3xl {
+            font-size: 1.5rem;
+            line-height: 1.75rem;
+          }
+
+          .text-2xl {
+            font-size: 1.25rem;
+            line-height: 1.5rem;
+          }
+
+          .text-xl {
+            font-size: 1rem;
+            line-height: 1.25rem;
+          }
+
+          .text-lg {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+          }
+
+          .text-sm {
+            font-size: 0.75rem;
+          }
+
+          .p-8 {
+            padding: 1rem;
+          }
+
+          .p-6 {
+            padding: 0.75rem;
+          }
+
+          .p-4 {
+            padding: 0.5rem;
+          }
+
+          .mb-8 {
+            margin-bottom: 1.5rem;
+          }
+
+          .mb-6 {
+            margin-bottom: 1rem;
+          }
+
+          .mb-4 {
+            margin-bottom: 0.75rem;
+          }
+
+          .gap-8 {
+            gap: 1rem;
+          }
+
+          .gap-6 {
+            gap: 0.75rem;
+          }
+
+          .gap-4 {
+            gap: 0.5rem;
+          }
+
+          .gap-3 {
+            gap: 0.5rem;
+          }
+
+          .h-80 {
+            height: 16rem;
+          }
+
+          .h-16 {
+            height: 3rem;
+          }
+
+          .h-40 {
+            height: 8rem;
+          }
+
+          .rounded-3xl {
+            border-radius: 1rem;
+          }
+
+          .rounded-2xl {
+            border-radius: 0.75rem;
+          }
+
+          .rounded-xl {
+            border-radius: 0.5rem;
+          }
+
+          .px-8 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+
+          .px-4 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+          }
+
+          .py-4 {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+          }
+
+          .py-2 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+          }
+
+          .text-yellow-400.text-2xl {
+            font-size: 1rem;
+          }
+
+          .flex.gap-4.pt-4 {
+            flex-direction: column;
+          }
+
+          .flex-1 {
+            width: 100%;
+          }
+
+          .px-8.py-4.border-2 {
+            padding: 0.5rem;
+          }
+
+          .space-y-6 {
+            margin-top: 0.75rem;
+          }
+
+          .space-y-3 {
+            margin-top: 0.5rem;
+          }
+
+          .space-y-2 {
+            margin-top: 0.5rem;
+          }
         }
       `}</style>
 
@@ -528,7 +694,7 @@ export default async function ComponentDetailsPage({ params }) {
                 )}
 
                 {/* معلومات سريعة */}
-                <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
+                {/* <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
                   <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
@@ -552,7 +718,7 @@ export default async function ComponentDetailsPage({ params }) {
                       <span className="font-medium text-gray-900">{detailedSpecs?.generalInfo?.releaseDate || '—'}</span>
                     </div>
                   </div>
-                </aside>
+                </aside> */}
               </div>
             </div>
 

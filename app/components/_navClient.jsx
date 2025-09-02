@@ -84,19 +84,15 @@ export default function Navbar({ navbarData }) {
   };
 
   return (
-    <>
+    <div dir="rtl" className="font-arabic">
       <header className="bg-white/90 backdrop-blur-lg sticky top-0 z-40 border-b border-gray-200/50 shadow-sm">
         <div className="w-full px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16">
-            {/* Mobile Menu Button - Left */}
-            <div className="flex items-center md:hidden">
-              <button
-                onClick={() => setMobileOpen(true)}
-                aria-label="فتح القائمة"
-                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <Menu size={22} />
-              </button>
+          <div className="flex items-center  flex-row-reverse md:flex-row justify-between h-14 sm:h-16">
+            {/* Company Logo/Name - Right (Arabic) */}
+            <div className="flex items-center">
+              <h1 className={`text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}>
+                {companyName}
+              </h1>
             </div>
 
             {/* Desktop Navigation - Center */}
@@ -120,12 +116,12 @@ export default function Navbar({ navbarData }) {
                         </button>
                         
                         {productsDropdownOpen && (
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200/70 py-3 z-20 backdrop-blur-sm">
+                          <div className="absolute top-full right-1/2 transform translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200/70 py-3 z-20 backdrop-blur-sm">
                             {productsSubMenu.map((subLink, subI) => (
                               <Link
                                 key={subI}
                                 href={subLink.href}
-                                className="block px-4 py-2.5 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all duration-200 mx-2 rounded-lg"
+                                className="block px-4 py-2.5 text-gray-700 hover:bg-gradient-to-l hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all duration-200 mx-2 rounded-lg text-right"
                                 onClick={() => setProductsDropdownOpen(false)}
                               >
                                 {subLink.text}
@@ -147,11 +143,15 @@ export default function Navbar({ navbarData }) {
               </ul>
             </nav>
 
-            {/* Company Logo/Name - Right */}
-            <div className="flex items-center">
-              <h1 className={`text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}>
-                {companyName}
-              </h1>
+            {/* Mobile Menu Button - Left (Arabic) */}
+            <div className="flex items-center md:hidden">
+              <button
+                onClick={() => setMobileOpen(true)}
+                aria-label="فتح القائمة"
+                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <Menu size={22} />
+              </button>
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function Navbar({ navbarData }) {
             }`}
           >
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-l from-gray-50 to-white">
               <h2 className={`text-xl font-bold bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}>
                 {companyName}
               </h2>
@@ -195,13 +195,13 @@ export default function Navbar({ navbarData }) {
                         <div>
                           <button
                             onClick={() => setMobileProductsOpen(!mobileProductsOpen)}
-                            className="w-full flex items-center justify-between p-3 text-right text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 rounded-lg transition-all duration-200"
+                            className="w-full flex items-center justify-between p-3 text-right text-gray-700 hover:bg-gradient-to-l hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 rounded-lg transition-all duration-200"
                           >
+                            <span className="font-medium">{link.text}</span>
                             <ChevronLeft 
                               size={18} 
                               className={`transform transition-transform duration-200 ${mobileProductsOpen ? 'rotate-90' : ''}`}
                             />
-                            <span className="font-medium">{link.text}</span>
                           </button>
                           
                           {mobileProductsOpen && (
@@ -210,7 +210,7 @@ export default function Navbar({ navbarData }) {
                                 <Link
                                   key={subI}
                                   href={subLink.href}
-                                  className="block p-3 text-gray-600 hover:bg-gray-50 hover:text-purple-600 rounded-lg transition-all duration-200 border-r-2 border-transparent hover:border-purple-300"
+                                  className="block p-3 text-gray-600 hover:bg-gray-50 hover:text-purple-600 rounded-lg transition-all duration-200 border-r-2 border-transparent hover:border-purple-300 text-right"
                                   onClick={closeSidebar}
                                 >
                                   {subLink.text}
@@ -222,7 +222,7 @@ export default function Navbar({ navbarData }) {
                       ) : (
                         <Link
                           href={link.href}
-                          className="block p-3 text-right text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 rounded-lg transition-all duration-200 font-medium"
+                          className="block p-3 text-right text-gray-700 hover:bg-gradient-to-l hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 rounded-lg transition-all duration-200 font-medium"
                           onClick={closeSidebar}
                         >
                           {link.text}
@@ -235,7 +235,7 @@ export default function Navbar({ navbarData }) {
             </div>
 
             {/* Sidebar Footer */}
-            <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+            <div className="p-4 border-t border-gray-200 bg-gradient-to-l from-gray-50 to-white">
               <p className="text-center text-sm text-gray-500">
                 مرحباً بك في {companyName}
               </p>
@@ -243,6 +243,6 @@ export default function Navbar({ navbarData }) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

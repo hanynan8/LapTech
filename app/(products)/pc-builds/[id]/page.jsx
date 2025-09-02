@@ -4,8 +4,7 @@ import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
-
-  // دالة إنشاء الصفحات الثابتة للمنتجات
+// دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
     const res = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=pc-build', {
@@ -37,8 +36,6 @@ export async function generateStaticParams() {
     return [];
   }
 }
-
-
 
 // Server Component للمنتجات المشابهة
 async function RelatedProducts({ product }) {
@@ -119,22 +116,22 @@ async function RelatedProducts({ product }) {
   if (relatedProducts.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">منتجات مشابهة</h2>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {relatedProducts.map((item, index) => (
           <Link 
             key={`related-${item.id}-${index}`} 
             href={`/pc-build/${item.id}`} 
-            className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
+            className="bg-gray-50 rounded-2xl p-3 sm:p-4 card-hover border border-gray-200"
             prefetch={false} // تحسين الأداء
           >
-            <div className="relative mb-4">
+            <div className="relative mb-3 sm:mb-4">
               <img 
                 src={item.image} 
                 alt={item.name} 
-                className="w-full h-40 object-contain"
+                className="w-full h-32 sm:h-40 object-contain"
                 loading="lazy"
                 decoding="async"
               />
@@ -145,12 +142,12 @@ async function RelatedProducts({ product }) {
               )}
             </div>
             
-            <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
+            <h3 className="font-bold text-base sm:text-lg mb-2 text-gray-900 line-clamp-2">
               {item.name}
             </h3>
             
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xl font-bold text-purple-600">
+              <div className="text-lg sm:text-xl font-bold text-purple-600">
                 {formatPrice(item.price)} {item.currency || 'ج.م'}
               </div>
               {item.rating && (
@@ -196,8 +193,8 @@ function TechnicalSpecs({ specs }) {
   if (validSpecs.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">المواصفات التقنية الكاملة</h2>
       
       <div className="info-grid">
         {validSpecs.map(([key, value]) => (
@@ -231,10 +228,10 @@ function ComponentsSection({ components }) {
   if (!components || !Array.isArray(components) || components.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">مكونات الجهاز</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">مكونات الجهاز</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {components.map((component, index) => (
           <div key={`component-${index}`} className="spec-card card-hover">
             <div className="flex items-center gap-3 mb-3">
@@ -253,8 +250,8 @@ function BenchmarksSection({ benchmarks }) {
   if (!benchmarks || Object.keys(benchmarks).length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">معايير الأداء</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">معايير الأداء</h2>
       
       <div className="info-grid">
         {Object.entries(benchmarks).map(([key, value]) => (
@@ -377,7 +374,7 @@ export default async function ProductDetailsPage({ params }) {
           bottom: 0;
           background: rgba(0, 0, 0, 0.85);
           z-index: 1000;
-          padding: 2rem;
+          padding: 1rem;
         }
         .lightbox:target { 
           display: flex; 
@@ -440,19 +437,19 @@ export default async function ProductDetailsPage({ params }) {
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .lightbox-prev { left: 20px; }
-        .lightbox-next { right: 20px; }
+        .lightbox-prev { left: 10px; }
+        .lightbox-next { right: 10px; }
 
         .info-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1rem;
         }
 
         .spec-card {
           background: white;
           border-radius: 1rem;
-          padding: 1.5rem;
+          padding: 1.25rem;
           border: 1px solid #e5e7eb;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
@@ -468,10 +465,10 @@ export default async function ProductDetailsPage({ params }) {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 8px 12px;
-          border-radius: 12px;
+          padding: 6px 10px;
+          border-radius: 8px;
           font-weight: 600;
-          font-size: 14px;
+          font-size: 12px;
         }
 
         .available {
@@ -491,33 +488,43 @@ export default async function ProductDetailsPage({ params }) {
           color: #d97706;
           border: 1px solid #fde68a;
         }
+
+        @media (max-width: 640px) {
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .spec-card {
+            padding: 1rem;
+          }
+        }
       `}</style>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         
         {/* Header Section */}
-        <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-8 fade-in">
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 p-8">
+        <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6 sm:mb-8 fade-in">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 sm:gap-8 p-4 sm:p-8">
             
             {/* صور المنتج */}
             <div className="xl:col-span-2">
-              <div className="sticky top-8">
+              <div className="sticky top-4 sm:top-8">
                 {/* الصورة الرئيسية */}
-                <div className="bg-gray-50 rounded-2xl p-6 mb-6 relative">
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 relative">
                   <img
                     src={images[0] || product.image || ''}
                     alt={product.name}
-                    className="w-full h-80 object-contain"
+                    className="w-full h-48 sm:h-80 object-contain"
                     loading="eager"
                     decoding="sync"
                   />
                   {product.badge && (
-                    <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    <span className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
                       {product.badge}
                     </span>
                   )}
                   {product.discount && (
-                    <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <span className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-red-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold">
                       خصم {product.discount}%
                     </span>
                   )}
@@ -525,13 +532,13 @@ export default async function ProductDetailsPage({ params }) {
 
                 {/* معرض مصغر */}
                 {Array.isArray(images) && images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3">
                     {images.slice(0, 4).map((src, i) => (
-                      <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover relative">
+                      <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-1 sm:p-2 card-hover relative">
                         <img 
                           src={src} 
                           alt={`${product.name} ${i + 1}`} 
-                          className="w-full h-16 object-cover rounded-lg"
+                          className="w-full h-12 sm:h-16 object-cover rounded-lg"
                           loading="lazy"
                           decoding="async"
                         />
@@ -540,12 +547,12 @@ export default async function ProductDetailsPage({ params }) {
                   </div>
                 )}
 
-                {/* معلومات سريعة */}
-                <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
-                  <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
-                  <div className="space-y-3">
+                {/* معلومات سريعة - للشاشات الكبيرة فقط */}
+                <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 mt-4 sm:mt-6 hidden xl:block">
+                  <h3 className="font-bold text-lg mb-3 sm:mb-4 text-gray-900">معلومات المنتج</h3>
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الحالة</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الحالة</span>
                       <span
                         className={`availability-badge ${
                           details.stockStatus === 'In Stock'
@@ -557,21 +564,21 @@ export default async function ProductDetailsPage({ params }) {
                       >
                         {details.stockStatus === 'In Stock' ? (
                           <>
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                             متوفر
                           </>
                         ) : details.stockStatus === 'Limited' ? (
                           <>
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
                             كمية محدودة
                           </>
                         ) : (
                           <>
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
                             غير متوفر
@@ -580,28 +587,28 @@ export default async function ProductDetailsPage({ params }) {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">رقم المنتج</span>
-                      <span className="font-medium text-gray-900">{details.sku || product.id || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">رقم المنتج</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{details.sku || product.id || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الضمان</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-gray-600 text-sm sm:text-base">الضمان</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">
                         {details.warrantyYears ? `${details.warrantyYears} سنوات` : '—'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الشركة المصنعة</span>
-                      <span className="font-medium text-gray-900">{details.manufacturer || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الشركة المصنعة</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{details.manufacturer || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الوزن</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-gray-600 text-sm sm:text-base">الوزن</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">
                         {details.weight_kg ? `${details.weight_kg} كجم` : '—'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">استهلاك الطاقة</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-gray-600 text-sm sm:text-base">استهلاك الطاقة</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">
                         {details.estimatedPowerW ? `${details.estimatedPowerW} واط` : '—'}
                       </span>
                     </div>
@@ -611,44 +618,44 @@ export default async function ProductDetailsPage({ params }) {
             </div>
 
             {/* تفاصيل المنتج */}
-            <div className="xl:col-span-3 space-y-6">
+            <div className="xl:col-span-3 space-y-4 sm:space-y-6">
               
               {/* اسم المنتج والسعر */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <span className="bg-purple-100 text-purple-700 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium">
                     {product.category}
                   </span>
                   {product.rating && (
                     <div className="flex items-center gap-1">
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                          <span key={`product-star-${i}`} className="text-sm">
+                          <span key={`product-star-${i}`} className="text-xs sm:text-sm">
                             {i < Math.floor(product.rating) ? '★' : '☆'}
                           </span>
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600">({product.rating})</span>
+                      <span className="text-xs sm:text-sm text-gray-600">({product.rating})</span>
                       {details.reviewCount && (
-                        <span className="text-sm text-gray-500">- {details.reviewCount} تقييم</span>
+                        <span className="text-xs sm:text-sm text-gray-500">- {details.reviewCount} تقييم</span>
                       )}
                     </div>
                   )}
                   {product.performanceScore && (
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-green-100 text-green-700 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium">
                       أداء: {product.performanceScore}/100
                     </span>
                   )}
                 </div>
 
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">{product.name}</h1>
                 
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="text-4xl font-bold text-purple-600">
+                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="text-2xl sm:text-4xl font-bold text-purple-600">
                     {formatPrice(product.price)} {product.currency || 'ج.م'}
                   </div>
                   {product.originalPrice && product.originalPrice > product.price && (
-                    <div className="text-xl text-gray-500 line-through">
+                    <div className="text-lg sm:text-xl text-gray-500 line-through">
                       {formatPrice(product.originalPrice)} {product.currency || 'ج.م'}
                     </div>
                   )}
@@ -657,15 +664,15 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* مواصفات سريعة */}
               {specs && Object.keys(specs).length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {Object.entries(specs).slice(0, 4).map(([key, value], i) => (
-                    <div key={`quick-spec-${i}`} className={`p-4 rounded-xl ${
+                    <div key={`quick-spec-${i}`} className={`p-3 sm:p-4 rounded-xl ${
                       i % 4 === 0 ? 'bg-blue-50 text-blue-700' :
                       i % 4 === 1 ? 'bg-green-50 text-green-700' :
                       i % 4 === 2 ? 'bg-purple-50 text-purple-700' :
                       'bg-orange-50 text-orange-700'
                     }`}>
-                      <div className="text-sm font-semibold mb-1">{key}</div>
+                      <div className="text-xs sm:text-sm font-semibold mb-1">{key}</div>
                       <div className="text-xs font-medium truncate" title={value}>
                         {value || '—'}
                       </div>
@@ -675,9 +682,9 @@ export default async function ProductDetailsPage({ params }) {
               )}
 
               {/* أزرار الإجراء */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4">
                 <button 
-                  className={`flex-1 py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 ${
+                  className={`flex-1 py-3 sm:py-4 px-6 sm:px-8 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:-translate-y-1 ${
                     isAvailable
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -686,44 +693,44 @@ export default async function ProductDetailsPage({ params }) {
                 >
                   {isAvailable ? 'اطلب الآن' : 'غير متوفر'}
                 </button>
-                <button className="px-8 py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors text-base sm:text-lg">
                   المفضلة
                 </button>
               </div>
 
               {/* معلومات إضافية */}
               {(details.psuRecommendation || details.coolingType || details.motherboardFormFactor) && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">معلومات إضافية</h3>
-                  <div className="space-y-3">
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">معلومات إضافية</h3>
+                  <div className="space-y-2 sm:space-y-3">
                     {details.psuRecommendation && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">مزود الطاقة الموصى به</span>
-                        <span className="font-medium">{details.psuRecommendation}</span>
+                        <span className="text-gray-600 text-sm sm:text-base">مزود الطاقة الموصى به</span>
+                        <span className="font-medium text-sm sm:text-base">{details.psuRecommendation}</span>
                       </div>
                     )}
                     {details.coolingType && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">نوع التبريد</span>
-                        <span className="font-medium">{details.coolingType}</span>
+                        <span className="text-gray-600 text-sm sm:text-base">نوع التبريد</span>
+                        <span className="font-medium text-sm sm:text-base">{details.coolingType}</span>
                       </div>
                     )}
                     {details.motherboardFormFactor && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">حجم اللوحة الأم</span>
-                        <span className="font-medium">{details.motherboardFormFactor}</span>
+                        <span className="text-gray-600 text-sm sm:text-base">حجم اللوحة الأم</span>
+                        <span className="font-medium text-sm sm:text-base">{details.motherboardFormFactor}</span>
                       </div>
                     )}
                     {details.rgb !== undefined && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">الإضاءة RGB</span>
-                        <span className="font-medium">{details.rgb ? 'متوفر' : 'غير متوفر'}</span>
+                        <span className="text-gray-600 text-sm sm:text-base">الإضاءة RGB</span>
+                        <span className="font-medium text-sm sm:text-base">{details.rgb ? 'متوفر' : 'غير متوفر'}</span>
                       </div>
                     )}
                     {details.supportsMultiGPU !== undefined && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">دعم كروت رسوميات متعددة</span>
-                        <span className="font-medium">{details.supportsMultiGPU ? 'مدعوم' : 'غير مدعوم'}</span>
+                        <span className="text-gray-600 text-sm sm:text-base">دعم كروت رسوميات متعددة</span>
+                        <span className="font-medium text-sm sm:text-base">{details.supportsMultiGPU ? 'مدعوم' : 'غير مدعوم'}</span>
                       </div>
                     )}
                   </div>
@@ -732,25 +739,25 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* الأبعاد المادية */}
               {details.dimensions_mm && (
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">الأبعاد المادية</h3>
-                  <div className="grid grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">الأبعاد المادية</h3>
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4">
                     {details.dimensions_mm.height && (
-                      <div className="bg-white rounded-xl p-3">
-                        <div className="text-sm text-gray-600">الارتفاع</div>
-                        <div className="font-bold text-purple-700">{details.dimensions_mm.height} مم</div>
+                      <div className="bg-white rounded-xl p-2 sm:p-3">
+                        <div className="text-xs sm:text-sm text-gray-600">الارتفاع</div>
+                        <div className="font-bold text-purple-700 text-sm sm:text-base">{details.dimensions_mm.height} مم</div>
                       </div>
                     )}
                     {details.dimensions_mm.width && (
-                      <div className="bg-white rounded-xl p-3">
-                        <div className="text-sm text-gray-600">العرض</div>
-                        <div className="font-bold text-purple-700">{details.dimensions_mm.width} مم</div>
+                      <div className="bg-white rounded-xl p-2 sm:p-3">
+                        <div className="text-xs sm:text-sm text-gray-600">العرض</div>
+                        <div className="font-bold text-purple-700 text-sm sm:text-base">{details.dimensions_mm.width} مم</div>
                       </div>
                     )}
                     {details.dimensions_mm.depth && (
-                      <div className="bg-white rounded-xl p-3">
-                        <div className="text-sm text-gray-600">العمق</div>
-                        <div className="font-bold text-purple-700">{details.dimensions_mm.depth} مم</div>
+                      <div className="bg-white rounded-xl p-2 sm:p-3">
+                        <div className="text-xs sm:text-sm text-gray-600">العمق</div>
+                        <div className="font-bold text-purple-700 text-sm sm:text-base">{details.dimensions_mm.depth} مم</div>
                       </div>
                     )}
                   </div>
@@ -759,13 +766,13 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* المنافذ والاتصالات */}
               {details.ports && details.ports.length > 0 && (
-                <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">المنافذ والاتصالات</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">المنافذ والاتصالات</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
                     {details.ports.map((port, index) => (
-                      <div key={`port-${index}`} className="flex items-center gap-3 p-3 bg-white rounded-xl">
+                      <div key={`port-${index}`} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-xl">
                         <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                        <span className="text-gray-700 font-medium">{port}</span>
+                        <span className="text-gray-700 font-medium text-sm sm:text-base">{port}</span>
                       </div>
                     ))}
                   </div>
@@ -774,18 +781,86 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* الملحقات المرفقة */}
               {details.includedAccessories && details.includedAccessories.length > 0 && (
-                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">الملحقات المرفقة</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">الملحقات المرفقة</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
                     {details.includedAccessories.map((accessory, index) => (
-                      <div key={`accessory-${index}`} className="flex items-center gap-3 p-3 bg-white rounded-xl">
+                      <div key={`accessory-${index}`} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-xl">
                         <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
-                        <span className="text-gray-700 font-medium">{accessory}</span>
+                        <span className="text-gray-700 font-medium text-sm sm:text-base">{accessory}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* معلومات المنتج - للشاشات الصغيرة فقط */}
+              <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 mt-4 sm:mt-6 block xl:hidden">
+                <h3 className="font-bold text-lg mb-3 sm:mb-4 text-gray-900">معلومات المنتج</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الحالة</span>
+                    <span
+                      className={`availability-badge ${
+                        details.stockStatus === 'In Stock'
+                          ? 'available'
+                          : details.stockStatus === 'Limited'
+                          ? 'limited'
+                          : 'unavailable'
+                      }`}
+                    >
+                      {details.stockStatus === 'In Stock' ? (
+                        <>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          متوفر
+                        </>
+                      ) : details.stockStatus === 'Limited' ? (
+                        <>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          كمية محدودة
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                          غير متوفر
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">رقم المنتج</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{details.sku || product.id || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الضمان</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">
+                      {details.warrantyYears ? `${details.warrantyYears} سنوات` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الشركة المصنعة</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{details.manufacturer || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الوزن</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">
+                      {details.weight_kg ? `${details.weight_kg} كجم` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">استهلاك الطاقة</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">
+                      {details.estimatedPowerW ? `${details.estimatedPowerW} واط` : '—'}
+                    </span>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
         </header>
@@ -801,8 +876,8 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* تفاصيل إضافية */}
         {details && Object.keys(details).length > 0 && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">التفاصيل الكاملة</h2>
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">التفاصيل الكاملة</h2>
             
             <div className="info-grid">
               {details.manufacturer && (
@@ -866,14 +941,14 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* منتجات ذات صلة مع Suspense لتحسين الأداء */}
         <Suspense fallback={
-          <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+          <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
             <div className="text-center">
               <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-8"></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="h-6 sm:h-8 bg-gray-200 rounded-lg w-1/2 sm:w-1/3 mx-auto mb-6 sm:mb-8"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {[...Array(4)].map((_, i) => (
-                    <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-                      <div className="bg-gray-200 h-40 rounded-xl mb-4"></div>
+                    <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-3 sm:p-4 border border-gray-200">
+                      <div className="bg-gray-200 h-32 sm:h-40 rounded-xl mb-3 sm:mb-4"></div>
                       <div className="h-4 bg-gray-200 rounded mb-2"></div>
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                     </div>

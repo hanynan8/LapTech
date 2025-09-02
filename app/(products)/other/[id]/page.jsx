@@ -4,9 +4,7 @@ import { Suspense } from 'react';
 
 export const dynamicParams = true;
 
-
-
-  // دالة إنشاء الصفحات الثابتة للمنتجات
+// دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
     const res = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=other', {
@@ -39,15 +37,11 @@ export async function generateStaticParams() {
   }
 }
 
-
-
-
 // Server Component للمنتجات المشابهة
 async function RelatedProducts({ product }) {
   // جلب المنتجات ذات الصلة مع تحسينات الأداء
   async function fetchRelatedProducts(product) {
     try {
-      const promises = [];
       let relatedProducts = [];
 
       // إذا كان المنتج يحتوي على relatedProducts IDs محددة
@@ -57,8 +51,8 @@ async function RelatedProducts({ product }) {
             const res = await fetch(
               `https://restaurant-back-end.vercel.app/api/data?collection=other&id=${id}`,
               { 
-                next: { revalidate: 3600 }, // تحسين مدة التخزين المؤقت
-                signal: AbortSignal.timeout(5000) // إضافة timeout
+                next: { revalidate: 3600 },
+                signal: AbortSignal.timeout(5000)
               }
             );
             if (!res.ok) return null;
@@ -83,7 +77,7 @@ async function RelatedProducts({ product }) {
           const categoryRes = await fetch(
             `https://restaurant-back-end.vercel.app/api/data?collection=other&category=${encodeURIComponent(product.category)}&limit=12`,
             { 
-              next: { revalidate: 1800 }, // تقليل مدة التخزين المؤقت للفئات
+              next: { revalidate: 1800 },
               signal: AbortSignal.timeout(5000)
             }
           );
@@ -119,8 +113,8 @@ async function RelatedProducts({ product }) {
   if (relatedProducts.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">منتجات مشابهة</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {relatedProducts.map((prod, index) => (
@@ -128,11 +122,11 @@ async function RelatedProducts({ product }) {
             key={`related-${prod.id}-${index}`} 
             href={`/other/${prod.id}`} 
             className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
-            prefetch={false} // تحسين الأداء
+            prefetch={false}
           >
             <div className="relative mb-4">
               <img 
-                src={prod.image || prod.detailedImages?.[0] || null} 
+                src={prod.image || prod.detailedImages?.[0] || '/placeholder.jpg'} 
                 alt={prod.name} 
                 className="w-full h-40 object-contain"
                 loading="lazy"
@@ -145,12 +139,12 @@ async function RelatedProducts({ product }) {
               )}
             </div>
             
-            <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
+            <h3 className="font-bold text-base sm:text-lg mb-2 text-gray-900 line-clamp-2">
               {prod.name}
             </h3>
             
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xl font-bold text-purple-600">
+              <div className="text-lg sm:text-xl font-bold text-purple-600">
                 {formatPrice(prod.price)} {prod.currency || 'ج.م'}
               </div>
               {prod.rating && (
@@ -184,16 +178,16 @@ function TechnicalSpecs({ specs }) {
   if (validSpecs.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">المواصفات التقنية الكاملة</h2>
       
       <div className="info-grid">
         {validSpecs.map(([key, value]) => (
           <div key={key} className="spec-card card-hover">
-            <h4 className="font-bold text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
+            <h4 className="font-bold text-base sm:text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
               {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
             </h4>
-            <div className="text-gray-700">
+            <div className="text-gray-700 text-sm sm:text-base">
               {Array.isArray(value) ? (
                 <ul className="space-y-2">
                   {value.map((item, idx) => (
@@ -227,15 +221,15 @@ function FeaturesSection({ features }) {
   if (!features || !Array.isArray(features) || features.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">المميزات</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">المميزات</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3">
         {features.map((feature, index) => (
           <div key={`feature-${index}`} className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100 card-hover">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-              <span className="text-gray-800 font-medium">{feature}</span>
+              <span className="text-gray-800 font-medium text-sm sm:text-base">{feature}</span>
             </div>
           </div>
         ))}
@@ -249,16 +243,16 @@ function BenchmarksSection({ benchmarks }) {
   if (!benchmarks || Object.keys(benchmarks).length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">معايير الأداء</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">معايير الأداء</h2>
       
       <div className="info-grid">
         {Object.entries(benchmarks).map(([key, value]) => (
           <div key={key} className="spec-card card-hover bg-red-50">
-            <h4 className="font-bold text-lg text-red-700 mb-3 border-b border-red-200 pb-2">
+            <h4 className="font-bold text-base sm:text-lg text-red-700 mb-3 border-b border-red-200 pb-2">
               {key}
             </h4>
-            <div className="text-red-800">
+            <div className="text-red-800 text-sm sm:text-base">
               {Array.isArray(value) ? (
                 <ul className="space-y-2">
                   {value.map((item, idx) => (
@@ -292,22 +286,22 @@ function ReviewsSection({ customerReviews }) {
   if (!customerReviews || !Array.isArray(customerReviews) || customerReviews.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">تقييمات العملاء</h2>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">تقييمات العملاء</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-3">
         {customerReviews.slice(0, 6).map((review, index) => (
-          <div key={`review-${review.user}-${index}`} className="review-card rounded-xl p-6 card-hover">
+          <div key={`review-${review.user}-${index}`} className="review-card rounded-xl p-4 sm:p-6 card-hover">
             <div className="flex items-center justify-between mb-3">
-              <div className="font-bold text-lg text-purple-700">{review.user}</div>
+              <div className="font-bold text-base sm:text-lg text-purple-700">{review.user}</div>
               <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => (
-                  <span key={`review-star-${i}`}>{i < review.rating ? '★' : '☆'}</span>
+                  <span key={`review-star-${i}`} className="text-sm sm:text-base">{i < review.rating ? '★' : '☆'}</span>
                 ))}
               </div>
             </div>
             {review.title && <div className="text-sm text-gray-600 mb-2 font-medium">{review.title}</div>}
-            <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
+            <p className="text-gray-700 mb-3 leading-relaxed text-sm sm:text-base">{review.comment}</p>
             <div className="text-sm text-gray-500">{formatDate(review.date)}</div>
           </div>
         ))}
@@ -316,7 +310,7 @@ function ReviewsSection({ customerReviews }) {
   );
 }
 
-// دالة مساعدة منفصلة لتنسيق السعر (خارج الكومبوننت)
+// دالة مساعدة لتنسيق السعر
 function formatPrice(num) {
   if (num == null) return '—';
   try {
@@ -342,7 +336,6 @@ function formatDate(dateStr) {
 }
 
 export default async function ProductDetailsPage({ params }) {
-  
   const resolvedParams = await params;
 
   // جلب المنتج حسب id
@@ -351,8 +344,8 @@ export default async function ProductDetailsPage({ params }) {
       const res = await fetch(
         `https://restaurant-back-end.vercel.app/api/data?collection=other&id=${id}`,
         { 
-          next: { revalidate: 900 }, // تحسين مدة التخزين المؤقت
-          signal: AbortSignal.timeout(8000) // timeout أطول للبيانات المهمة
+          next: { revalidate: 900 },
+          signal: AbortSignal.timeout(8000)
         }
       );
       if (!res.ok) return null;
@@ -434,7 +427,7 @@ export default async function ProductDetailsPage({ params }) {
           bottom: 0;
           background: rgba(0, 0, 0, 0.85);
           z-index: 1000;
-          padding: 2rem;
+          padding: 1rem;
         }
         .lightbox:target { 
           display: flex; 
@@ -442,7 +435,7 @@ export default async function ProductDetailsPage({ params }) {
         
         .lightbox-content {
           position: relative;
-          max-width: 90vw;
+          max-width: 95vw;
           max-height: 90vh;
           display: flex;
           align-items: center;
@@ -471,7 +464,7 @@ export default async function ProductDetailsPage({ params }) {
         .lightbox-close {
           position: absolute;
           top: -40px;
-          right: -10px;
+          right: 0;
           width: 30px;
           height: 30px;
           border-radius: 50%;
@@ -486,30 +479,30 @@ export default async function ProductDetailsPage({ params }) {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: bold;
-          font-size: 1.5rem;
+          font-size: 1rem;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .lightbox-prev { left: 20px; }
-        .lightbox-next { right: 20px; }
+        .lightbox-prev { left: 10px; }
+        .lightbox-next { right: 10px; }
 
         .info-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1rem;
         }
 
         .spec-card {
           background: white;
           border-radius: 1rem;
-          padding: 1.5rem;
+          padding: 1rem;
           border: 1px solid #e5e7eb;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
@@ -526,33 +519,61 @@ export default async function ProductDetailsPage({ params }) {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+
+        .availability-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 10px;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 12px;
+        }
+
+        .available {
+          background-color: #dcfce7;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .unavailable {
+          background-color: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+
+        .limited {
+          background-color: #fef3c7;
+          color: #d97706;
+          border: 1px solid #fde68a;
+        }
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         
         {/* Header Section */}
         <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-8 fade-in">
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 p-8">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 p-4 sm:p-8">
             
             {/* صور المنتج */}
             <div className="xl:col-span-2">
               <div className="sticky top-8">
                 {/* الصورة الرئيسية */}
-                <div className="bg-gray-50 rounded-2xl p-6 mb-6 relative">
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 mb-6 relative">
                   <img
-                    src={images[0] || product.image || null}
+                    src={images[0] || '/placeholder.jpg'}
                     alt={product.name}
-                    className="w-full h-80 object-contain"
+                    className="w-full h-64 sm:h-80 object-contain"
                     loading="eager"
                     decoding="sync"
                   />
                   {product.badge && (
-                    <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    <span className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
                       {product.badge}
                     </span>
                   )}
                   {product.discount && (
-                    <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
                       خصم {product.discount}%
                     </span>
                   )}
@@ -560,13 +581,13 @@ export default async function ProductDetailsPage({ params }) {
 
                 {/* معرض مصغر */}
                 {Array.isArray(images) && images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
                     {images.slice(0, 4).map((src, i) => (
                       <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover relative">
                         <img 
                           src={src} 
                           alt={`${product.name} ${i + 1}`} 
-                          className="w-full h-16 object-cover rounded-lg"
+                          className="w-full h-12 sm:h-16 object-cover rounded-lg"
                           loading="lazy"
                           decoding="async"
                         />
@@ -575,51 +596,67 @@ export default async function ProductDetailsPage({ params }) {
                   </div>
                 )}
 
-                {/* معلومات سريعة */}
-                <aside className="bg-gray-50 rounded-2xl p-6 mt-6">
-                  <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
+                {/* معلومات سريعة - تظهر في الشاشات الكبيرة فقط */}
+                <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 mt-6 hidden xl:block">
+                  <h3 className="font-bold text-base sm:text-lg mb-4 text-gray-900">معلومات المنتج</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الحالة</span>
-                      <span className={`font-semibold ${isAvailable ? 'text-green-600' : 'text-red-500'}`}>
-                        {isAvailable ? 'متوفر' : 'غير متوفر'}
+                      <span className="text-gray-600 text-sm sm:text-base">الحالة</span>
+                      <span className={`availability-badge text-sm sm:text-base ${
+                        isAvailable ? 'available' : 'unavailable'
+                      }`}>
+                        {isAvailable ? (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            متوفر
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            غير متوفر
+                          </>
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">المخزون</span>
-                      <span className="font-medium text-gray-900">{stock || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">المخزون</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{stock || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">رقم المنتج</span>
-                      <span className="font-medium text-gray-900">{sku || product.id || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">رقم المنتج</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{sku || product.id || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الفئة</span>
-                      <span className="font-medium text-gray-900">{product.category || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الفئة</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{product.category || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الشركة المصنعة</span>
-                      <span className="font-medium text-gray-900">{manufacturer || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الشركة المصنعة</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{manufacturer || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الضمان</span>
-                      <span className="font-medium text-gray-900">{warranty || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الضمان</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{warranty || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">بلد المنشأ</span>
-                      <span className="font-medium text-gray-900">{originCountry || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">بلد المنشأ</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{originCountry || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الأبعاد</span>
-                      <span className="font-medium text-gray-900">{dimensions || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الأبعاد</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{dimensions || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">الوزن</span>
-                      <span className="font-medium text-gray-900">{weight || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">الوزن</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{weight || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">استهلاك الطاقة</span>
-                      <span className="font-medium text-gray-900">{energyConsumption || '—'}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">استهلاك الطاقة</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{energyConsumption || '—'}</span>
                     </div>
                   </div>
                 </aside>
@@ -631,33 +668,29 @@ export default async function ProductDetailsPage({ params }) {
               
               {/* اسم المنتج والسعر */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <span className="bg-purple-100 text-purple-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                     {product.category}
                   </span>
                   {product.rating && (
                     <div className="flex items-center gap-1">
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                          <span key={`product-star-${i}`} className="text-sm">
-                            {i < Math.floor(product.rating) ? '★' : '☆'}
-                          </span>
+                          <span key={`product-star-${i}`} className="text-sm">{i < Math.floor(product.rating) ? '★' : '☆'}</span>
                         ))}
                       </div>
                       <span className="text-sm text-gray-600">({product.rating})</span>
                       {customerReviews.length > 0 && (
-                        <span className="text-gray-500 text-sm ml-2">
-                          ({customerReviews.length} تقييم)
-                        </span>
+                        <span className="text-gray-500 text-sm ml-2">({customerReviews.length} تقييم)</span>
                       )}
                     </div>
                   )}
                 </div>
 
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
                 
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="text-4xl font-bold text-purple-600">
+                <div className="flex items-center gap-4 mb-6 flex-wrap">
+                  <div className="text-2xl sm:text-3xl font-bold text-purple-600">
                     {formatPrice(product.price)} {product.currency || 'ج.م'}
                   </div>
                 </div>
@@ -665,15 +698,15 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* مواصفات سريعة */}
               {Object.keys(specs).length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {Object.entries(specs).slice(0, 4).map(([key, value], i) => (
-                    <div key={`quick-spec-${i}`} className={`p-4 rounded-xl ${
+                    <div key={`quick-spec-${i}`} className={`p-3 sm:p-4 rounded-xl ${
                       i % 4 === 0 ? 'bg-blue-50 text-blue-700' :
                       i % 4 === 1 ? 'bg-green-50 text-green-700' :
                       i % 4 === 2 ? 'bg-purple-50 text-purple-700' :
                       'bg-orange-50 text-orange-700'
                     }`}>
-                      <div className="text-sm font-semibold mb-1">
+                      <div className="text-xs sm:text-sm font-semibold mb-1">
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                       </div>
                       <div className="text-xs font-medium truncate" title={String(value)}>
@@ -685,9 +718,9 @@ export default async function ProductDetailsPage({ params }) {
               )}
 
               {/* أزرار الإجراء */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 sm:gap-4 pt-4 flex-wrap">
                 <button 
-                  className={`flex-1 py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 ${
+                  className={`flex-1 min-w-40 py-3 sm:py-4 px-6 sm:px-8 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:-translate-y-1 ${
                     isAvailable
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -696,23 +729,88 @@ export default async function ProductDetailsPage({ params }) {
                 >
                   {isAvailable ? 'اطلب الآن' : 'غير متوفر'}
                 </button>
-                <button className="px-8 py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors text-sm sm:text-base">
                   المفضلة
                 </button>
               </div>
 
+              {/* معلومات سريعة - تظهر في الشاشات الصغيرة فقط */}
+              <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 xl:hidden">
+                <h3 className="font-bold text-base sm:text-lg mb-4 text-gray-900">معلومات المنتج</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الحالة</span>
+                    <span className={`availability-badge text-sm sm:text-base ${
+                      isAvailable ? 'available' : 'unavailable'
+                    }`}>
+                      {isAvailable ? (
+                        <>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          متوفر
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                          غير متوفر
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">المخزون</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{stock || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">رقم المنتج</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{sku || product.id || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الفئة</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{product.category || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الشركة المصنعة</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{manufacturer || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الضمان</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{warranty || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">بلد المنشأ</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{originCountry || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الأبعاد</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{dimensions || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">الوزن</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{weight || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">استهلاك الطاقة</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{energyConsumption || '—'}</span>
+                  </div>
+                </div>
+              </aside>
+
               {/* الوصف */}
               {description && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">وصف المنتج</h3>
-                  <p className="text-gray-700 leading-relaxed">{description}</p>
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">وصف المنتج</h3>
+                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{description}</p>
                 </div>
               )}
 
               {/* معلومات الشحن والتوصيل */}
               {Object.keys(shippingInfo).length > 0 && (
-                <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
-                  <h3 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                <div className="bg-green-50 rounded-2xl p-4 sm:p-6 border border-green-200">
+                  <h3 className="text-lg sm:text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -729,7 +827,7 @@ export default async function ProductDetailsPage({ params }) {
                     </svg>
                     الشحن والتوصيل
                   </h3>
-                  <div className="text-green-700 space-y-2">
+                  <div className="text-green-700 space-y-2 text-sm sm:text-base">
                     <p>• من: {shippingInfo.shipsFrom || '—'}</p>
                     <p>• تقدير التوصيل: {shippingInfo.deliveryEstimation || '—'}</p>
                     <p>• شحن دولي: {shippingInfo.internationalShipping ? 'نعم' : 'لا'}</p>
@@ -740,11 +838,11 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* الألوان المتاحة */}
               {colors && colors.length > 0 && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">الألوان المتاحة</h3>
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">الألوان المتاحة</h3>
                   <div className="flex flex-wrap gap-3">
                     {colors.map((color, index) => (
-                      <span key={`color-${index}`} className="px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200">
+                      <span key={`color-${index}`} className="px-3 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-full text-xs sm:text-sm font-medium border border-purple-200">
                         {color}
                       </span>
                     ))}
@@ -754,11 +852,11 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* المنافذ */}
               {ports && ports.length > 0 && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">المنافذ والاتصالات</h3>
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">المنافذ والاتصالات</h3>
                   <div className="flex flex-wrap gap-3">
                     {ports.map((port, index) => (
-                      <span key={`port-${index}`} className="px-4 py-2 bg-gradient-to-r from-cyan-100 to-teal-100 text-cyan-700 rounded-full text-sm font-medium border border-cyan-200">
+                      <span key={`port-${index}`} className="px-3 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-cyan-100 to-teal-100 text-cyan-700 rounded-full text-xs sm:text-sm font-medium border border-cyan-200">
                         {port}
                       </span>
                     ))}
@@ -768,11 +866,11 @@ export default async function ProductDetailsPage({ params }) {
 
               {/* العلامات */}
               {tags && tags.length > 0 && (
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">العلامات</h3>
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">العلامات</h3>
                   <div className="flex flex-wrap gap-3">
                     {tags.map((tag, index) => (
-                      <span key={`tag-${index}`} className="px-4 py-2 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-700 rounded-full text-sm font-medium border border-yellow-200">
+                      <span key={`tag-${index}`} className="px-3 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-700 rounded-full text-xs sm:text-sm font-medium border border-yellow-200">
                         {tag}
                       </span>
                     ))}
@@ -797,15 +895,15 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* التغليف */}
         {packaging && Object.keys(packaging).length > 0 && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">معلومات التغليف</h2>
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">معلومات التغليف</h2>
             <div className="info-grid">
               {Object.entries(packaging).map(([key, value]) => (
                 <div key={key} className="spec-card card-hover bg-orange-50">
-                  <h4 className="font-bold text-lg text-orange-700 mb-3 border-b border-orange-200 pb-2">
+                  <h4 className="font-bold text-base sm:text-lg text-orange-700 mb-3 border-b border-orange-200 pb-2">
                     {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                   </h4>
-                  <div className="text-orange-800">
+                  <div className="text-orange-800 text-sm sm:text-base">
                     <div className="leading-relaxed">{String(value)}</div>
                   </div>
                 </div>
@@ -816,14 +914,14 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* مواقع التوفر */}
         {availabilityLocations && availabilityLocations.length > 0 && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">مواقع التوفر</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">مواقع التوفر</h2>
+            <div className="grid grid-cols-1 gap-3">
               {availabilityLocations.map((location, index) => (
                 <div key={`location-${index}`} className="bg-green-50 p-4 rounded-xl border border-green-100 card-hover">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <span className="text-green-800 font-medium">{location}</span>
+                    <span className="text-green-800 font-medium text-sm sm:text-base">{location}</span>
                   </div>
                 </div>
               ))}
@@ -832,87 +930,89 @@ export default async function ProductDetailsPage({ params }) {
         )}
 
         {/* معلومات إضافية */}
-        <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">معلومات إضافية</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">الحالة</div>
-              <div className="font-semibold text-indigo-800">{isAvailable ? 'متوفر' : 'غير متوفر'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">المخزون</div>
-              <div className="font-semibold text-indigo-800">{stock || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">رقم المنتج</div>
-              <div className="font-semibold text-indigo-800">{sku || product.id || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">الشركة المصنعة</div>
-              <div className="font-semibold text-indigo-800">{manufacturer || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">الضمان</div>
-              <div className="font-semibold text-indigo-800">{warranty || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">بلد المنشأ</div>
-              <div className="font-semibold text-indigo-800">{originCountry || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">تاريخ الإصدار</div>
-              <div className="font-semibold text-indigo-800">{releaseDate ? formatDate(releaseDate) : '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">الأبعاد</div>
-              <div className="font-semibold text-indigo-800">{dimensions || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">الوزن</div>
-              <div className="font-semibold text-indigo-800">{weight || '—'}</div>
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-              <div className="text-sm font-medium text-indigo-600 mb-1">استهلاك الطاقة</div>
-              <div className="font-semibold text-indigo-800">{energyConsumption || '—'}</div>
-            </div>
-            {product.performanceScore && (
+        {Object.keys(details).length > 0 && (
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">معلومات إضافية</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
               <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <div className="text-sm font-medium text-indigo-600 mb-1">نقاط الأداء</div>
-                <div className="font-semibold text-indigo-800">{product.performanceScore}/100</div>
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الحالة</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{isAvailable ? 'متوفر' : 'غير متوفر'}</div>
               </div>
-            )}
-            {meta.createdAt && (
               <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <div className="text-sm font-medium text-indigo-600 mb-1">تاريخ الإنشاء</div>
-                <div className="font-semibold text-indigo-800">{formatDate(meta.createdAt)}</div>
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">المخزون</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{stock || '—'}</div>
               </div>
-            )}
-            {meta.updatedAt && (
               <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <div className="text-sm font-medium text-indigo-600 mb-1">تاريخ التحديث</div>
-                <div className="font-semibold text-indigo-800">{formatDate(meta.updatedAt)}</div>
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">رقم المنتج</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{sku || product.id || '—'}</div>
               </div>
-            )}
-            {meta.visibility && (
               <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <div className="text-sm font-medium text-indigo-600 mb-1">الرؤية</div>
-                <div className="font-semibold text-indigo-800">{meta.visibility}</div>
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الشركة المصنعة</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{manufacturer || '—'}</div>
               </div>
-            )}
-          </div>
-        </section>
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الضمان</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{warranty || '—'}</div>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">بلد المنشأ</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{originCountry || '—'}</div>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">تاريخ الإصدار</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{releaseDate ? formatDate(releaseDate) : '—'}</div>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الأبعاد</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{dimensions || '—'}</div>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الوزن</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{weight || '—'}</div>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">استهلاك الطاقة</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{energyConsumption || '—'}</div>
+              </div>
+              {product.performanceScore && (
+                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                  <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">نقاط الأداء</div>
+                  <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.performanceScore}/100</div>
+                </div>
+              )}
+              {meta.createdAt && (
+                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                  <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">تاريخ الإنشاء</div>
+                  <div className="font-semibold text-indigo-800 text-sm sm:text-base">{formatDate(meta.createdAt)}</div>
+                </div>
+              )}
+              {meta.updatedAt && (
+                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                  <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">تاريخ التحديث</div>
+                  <div className="font-semibold text-indigo-800 text-sm sm:text-base">{formatDate(meta.updatedAt)}</div>
+                </div>
+              )}
+              {meta.visibility && (
+                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                  <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الرؤية</div>
+                  <div className="font-semibold text-indigo-800 text-sm sm:text-base">{meta.visibility}</div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* العروض الترويجية */}
         {promotions && Object.keys(promotions).length > 0 && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">العروض الترويجية</h2>
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">العروض الترويجية</h2>
             <div className="info-grid">
               {Object.entries(promotions).map(([key, value]) => (
                 <div key={key} className="spec-card card-hover bg-yellow-50">
-                  <h4 className="font-bold text-lg text-yellow-700 mb-3 border-b border-yellow-200 pb-2">
+                  <h4 className="font-bold text-base sm:text-lg text-yellow-700 mb-3 border-b border-yellow-200 pb-2">
                     {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                   </h4>
-                  <div className="text-yellow-800">
+                  <div className="text-yellow-800 text-sm sm:text-base">
                     <div className="leading-relaxed">{String(value)}</div>
                   </div>
                 </div>
@@ -923,15 +1023,15 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* معلومات الدعم */}
         {support && Object.keys(support).length > 0 && (
-          <section className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">معلومات الدعم</h2>
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">معلومات الدعم</h2>
             <div className="info-grid">
               {Object.entries(support).map(([key, value]) => (
                 <div key={key} className="spec-card card-hover bg-teal-50">
-                  <h4 className="font-bold text-lg text-teal-700 mb-3 border-b border-teal-200 pb-2">
+                  <h4 className="font-bold text-base sm:text-lg text-teal-700 mb-3 border-b border-teal-200 pb-2">
                     {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                   </h4>
-                  <div className="text-teal-800">
+                  <div className="text-teal-800 text-sm sm:text-base">
                     <div className="leading-relaxed">{String(value)}</div>
                   </div>
                 </div>
@@ -942,11 +1042,11 @@ export default async function ProductDetailsPage({ params }) {
 
         {/* منتجات ذات صلة مع Suspense لتحسين الأداء */}
         <Suspense fallback={
-          <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 fade-in">
+          <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
             <div className="text-center">
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-8"></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {[...Array(4)].map((_, i) => (
                     <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
                       <div className="bg-gray-200 h-40 rounded-xl mb-4"></div>

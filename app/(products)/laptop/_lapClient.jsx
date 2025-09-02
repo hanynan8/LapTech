@@ -638,7 +638,7 @@ const ProductsClient = ({ initialData }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center text-white">
           <h2 className="text-4xl font-bold mb-6">لم تجد ما تبحث عنه؟</h2>
           <p className="text-xl mb-8 opacity-90">
-            تواصل معنا وسنساعدك في العثور على الاكسسوار المثالي
+            تواصل معنا وسنساعدك في العثور على اللابتوب المثالي
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button

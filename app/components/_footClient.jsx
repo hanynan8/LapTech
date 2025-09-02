@@ -43,20 +43,20 @@ export default function Footer({ footerData, loading }) {
   return (
     <footer className="bg-gray-900 text-white">
       {/* top */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* company */}
           <div className="col-span-1 lg:col-span-2">
-            <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
+            <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
               {safe.company?.name || ''}
             </h3>
 
             {safe.company?.subtitle && (
-              <p className="text-gray-400 text-lg mb-6">{safe.company.subtitle}</p>
+              <p className="text-gray-400 text-base md:text-lg mb-6">{safe.company.subtitle}</p>
             )}
 
             {safe.company?.description && (
-              <p className="text-gray-500 mb-6">{safe.company.description}</p>
+              <p className="text-gray-500 text-sm md:text-base mb-6">{safe.company.description}</p>
             )}
 
             <div className="flex space-x-4 rtl:space-x-reverse">
@@ -81,7 +81,7 @@ export default function Footer({ footerData, loading }) {
           {/* dynamic sections */}
           {(safe.sections || []).map((section, index) => (
             <div key={index} className="mt-6 lg:mt-0">
-              <h4 className="text-lg font-semibold mb-4 text-purple-300">{section.title}</h4>
+              <h4 className="text-base md:text-lg font-semibold mb-4 text-purple-300">{section.title}</h4>
 
               {Array.isArray(section.links) && section.links.length > 0 ? (
                 <ul className="space-y-3">
@@ -89,7 +89,7 @@ export default function Footer({ footerData, loading }) {
                     <li key={li}>
                       <a
                         href={link.href || '#'}
-                        className="text-gray-400 hover:text-white transition-colors duration-300"
+                        className="text-gray-400 hover:text-white text-sm md:text-base transition-colors duration-300"
                       >
                         {link.text || link.name || ''}
                       </a>
@@ -97,7 +97,7 @@ export default function Footer({ footerData, loading }) {
                   ))}
                 </ul>
               ) : (
-                <div className="text-gray-400 space-y-3">
+                <div className="text-gray-400 text-sm md:text-base space-y-3">
                   {section.content?.address && (
                     <div className="flex items-start">
                       <FaMapMarkerAlt className="w-5 h-5 mt-1 ml-2 text-purple-400" />
@@ -135,9 +135,9 @@ export default function Footer({ footerData, loading }) {
 
       {/* bottom */}
       <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-xs md:text-sm">
               &copy; {safe.company?.year ?? new Date().getFullYear()} {safe.company?.name || ''}. جميع الحقوق محفوظة.
             </p>
 
@@ -146,7 +146,7 @@ export default function Footer({ footerData, loading }) {
                 <a
                   key={idx}
                   href={link.href || '#'}
-                  className="text-gray-500 hover:text-white text-sm transition-colors duration-300"
+                  className="text-gray-500 hover:text-white text-xs md:text-sm transition-colors duration-300"
                 >
                   {link.text || link.name || ''}
                 </a>

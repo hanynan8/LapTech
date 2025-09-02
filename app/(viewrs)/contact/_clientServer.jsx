@@ -27,8 +27,6 @@ function goToWatssap() {
   window.open('https://wa.me/+2001201061216');
 }
 
-
-
 const ContactClient = ({ initialData, error: serverError }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -118,8 +116,8 @@ const ContactClient = ({ initialData, error: serverError }) => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center" dir="rtl">
         <div className="text-center">
-          <Loader className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-          <p className="text-xl text-gray-600">جاري تحميل البيانات...</p>
+          <Loader className="w-8 h-8 sm:w-12 sm:h-12 animate-spin text-purple-600 mx-auto mb-4" />
+          <p className="text-lg sm:text-xl text-gray-600">جاري تحميل البيانات...</p>
         </div>
       </div>
     );
@@ -129,15 +127,15 @@ const ContactClient = ({ initialData, error: serverError }) => {
   if (error) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center" dir="rtl">
-        <div className="text-center bg-white p-8 rounded-2xl shadow-lg max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-600 text-2xl">⚠️</span>
+        <div className="text-center bg-white p-4 sm:p-8 rounded-2xl shadow-lg max-w-md">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-xl sm:text-2xl">⚠️</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">خطأ في التحميل</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">خطأ في التحميل</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition-colors"
+            className="bg-purple-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold hover:bg-purple-700 transition-colors"
           >
             إعادة المحاولة
           </button>
@@ -151,7 +149,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center" dir="rtl">
         <div className="text-center">
-          <p className="text-xl text-gray-600">لا توجد بيانات متاحة</p>
+          <p className="text-lg sm:text-xl text-gray-600">لا توجد بيانات متاحة</p>
         </div>
       </div>
     );
@@ -160,37 +158,37 @@ const ContactClient = ({ initialData, error: serverError }) => {
   return (
     <div className="min-h-screen bg-slate-50" dir="rtl">
       {/* Hero Section */}
-      <section className="relative h-96 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden">
+      <section className="relative h-64 sm:h-96 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center text-white max-w-4xl mx-auto px-4">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 animate-fade-in-up">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-4 sm:mb-6 animate-fade-in-up">
               {contactData.pageTitle}
             </h1>
-            <p className="text-2xl md:text-3xl opacity-90 animate-fade-in-up animation-delay-200">
+            <p className="text-xl sm:text-2xl md:text-3xl opacity-90 animate-fade-in-up animation-delay-200">
               {contactData.pageSubtitle}
             </p>
           </div>
         </div>
         
         {/* Decorative elements */}
-        <div className="absolute top-20 left-20 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-32 h-32 bg-white/5 rounded-full animate-pulse animation-delay-1000"></div>
+        <div className="absolute top-10 sm:top-20 left-10 sm:left-20 w-10 sm:w-20 h-10 sm:h-20 bg-white/10 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-10 sm:bottom-20 right-10 sm:right-20 w-16 sm:w-32 h-16 sm:h-32 bg-white/5 rounded-full animate-pulse animation-delay-1000"></div>
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-20 bg-white">
+      <section className="py-10 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
             {contactData.contactInfo?.map((info, index) => {
               const IconComponent = iconMap[info.icon];
               return (
                 <div key={index} className="group">
-                  <div className="bg-white rounded-2xl p-8 shadow-lg group-hover:shadow-2xl transform group-hover:-translate-y-2 transition-all duration-300 border border-gray-100">
-                    <div className={`bg-gradient-to-br ${info.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                      {IconComponent && <IconComponent className="w-8 h-8 text-white" />}
+                  <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-lg group-hover:shadow-2xl transform group-hover:-translate-y-2 transition-all duration-300 border border-gray-100">
+                    <div className={`bg-gradient-to-br ${info.color} w-12 sm:w-16 h-12 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      {IconComponent && <IconComponent className="w-6 sm:w-8 h-6 sm:h-8 text-white" />}
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{info.title}</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">{info.title}</h3>
                     {info.details?.map((detail, detailIndex) => (
                       <p key={detailIndex} className="text-gray-600 mb-2">{detail}</p>
                     ))}
@@ -203,26 +201,26 @@ const ContactClient = ({ initialData, error: serverError }) => {
       </section>
 
       {/* Contact Form & Additional Info */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-gray-100">
+      <section className="py-10 sm:py-20 bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-12">
             
             {/* Contact Form */}
-            <div className="bg-white rounded-3xl p-8 shadow-lg">
-              <div className="mb-8">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">{contactData.formLabels?.formTitle}</h2>
-                <p className="text-xl text-gray-600">{contactData.formLabels?.formSubtitle}</p>
+            <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-lg">
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{contactData.formLabels?.formTitle}</h2>
+                <p className="text-lg sm:text-xl text-gray-600">{contactData.formLabels?.formSubtitle}</p>
               </div>
 
               {showSuccess && (
-                <div className="mb-6 bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center">
-                  <CheckCircle className="w-6 h-6 text-green-500 ml-3" />
+                <div className="mb-4 sm:mb-6 bg-green-50 border border-green-200 rounded-2xl p-3 sm:p-4 flex items-center">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 ml-3" />
                   <span className="text-green-800">{contactData.formLabels?.successMessage}</span>
                 </div>
               )}
 
-              <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-gray-700 font-bold mb-2">
                       {contactData.formLabels?.fields?.name?.label}
@@ -233,7 +231,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
                       placeholder={contactData.formLabels?.fields?.name?.placeholder}
                     />
                   </div>
@@ -247,13 +245,13 @@ const ContactClient = ({ initialData, error: serverError }) => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
                       placeholder={contactData.formLabels?.fields?.email?.placeholder}
                     />
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-gray-700 font-bold mb-2">
                       {contactData.formLabels?.fields?.phone?.label}
@@ -263,7 +261,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
                       placeholder={contactData.formLabels?.fields?.phone?.placeholder}
                     />
                   </div>
@@ -275,7 +273,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
                       name="type"
                       value={formData.type}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
                     >
                       {contactData.formLabels?.fields?.type?.options?.map((option, index) => (
                         <option key={index} value={option.value}>{option.label}</option>
@@ -294,7 +292,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
                     value={formData.subject}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
                     placeholder={contactData.formLabels?.fields?.subject?.placeholder}
                   />
                 </div>
@@ -309,7 +307,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
                     onChange={handleInputChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 resize-none"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 resize-none"
                     placeholder={contactData.formLabels?.fields?.message?.placeholder}
                   ></textarea>
                 </div>
@@ -318,17 +316,17 @@ const ContactClient = ({ initialData, error: serverError }) => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl text-lg font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 sm:py-4 rounded-xl text-base sm:text-lg font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div>
+                      <div className="w-4 sm:w-5 h-4 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div>
                       {contactData.formLabels?.submitButton?.loading}
                     </div>
                   ) : (
                     <>
                       {contactData.formLabels?.submitButton?.default}
-                      <Send className="w-5 h-5 inline mr-2" />
+                      <Send className="w-4 sm:w-5 h-4 sm:h-5 inline mr-2" />
                     </>
                   )}
                 </button>
@@ -336,23 +334,23 @@ const ContactClient = ({ initialData, error: serverError }) => {
             </div>
 
             {/* Quick Contact Methods */}
-            <div className="space-y-8">
-              <div className="space-y-4">
+            <div className="space-y-4 sm:space-y-8">
+              <div className="space-y-2 sm:space-y-4">
                 {contactData.contactMethods?.map((method, index) => {
                   const IconComponent = iconMap[method.icon];
                   return (
-                    <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                    <div key={index} className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                       <div className="flex items-start">
-                        <div className={`bg-gradient-to-br ${method.color} w-12 h-12 rounded-xl flex items-center justify-center ml-4 flex-shrink-0`}>
-                          {IconComponent && <IconComponent className="w-6 h-6 text-white" />}
+                        <div className={`bg-gradient-to-br ${method.color} w-10 sm:w-12 h-10 sm:h-12 rounded-xl flex items-center justify-center ml-3 sm:ml-4 flex-shrink-0`}>
+                          {IconComponent && <IconComponent className="w-5 sm:w-6 h-5 sm:h-6 text-white" />}
                         </div>
                         <div className="flex-grow">
-                          <h4 className="text-xl font-bold text-gray-900 mb-2">{method.title}</h4>
+                          <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{method.title}</h4>
                           <p className="text-gray-600 mb-3">{method.description}</p>
-                            <button onClick={() => {goToWatssap()}} className="text-purple-600 font-bold hover:text-purple-800 transition-colors duration-300">
-                              {method.buttonText}
-                              <ArrowRight className="w-4 h-4 inline mr-1" />
-                            </button>
+                          <button onClick={() => {goToWatssap()}} className="text-purple-600 font-bold hover:text-purple-800 transition-colors duration-300">
+                            {method.buttonText}
+                            <ArrowRight className="w-3 sm:w-4 h-3 sm:h-4 inline mr-1" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -365,17 +363,17 @@ const ContactClient = ({ initialData, error: serverError }) => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-white">
+      <section className="py-10 sm:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-gray-900 mb-4">{contactData.faqSection?.title}</h2>
-            <p className="text-xl text-gray-600">{contactData.faqSection?.subtitle}</p>
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-4">{contactData.faqSection?.title}</h2>
+            <p className="text-lg sm:text-xl text-gray-600">{contactData.faqSection?.subtitle}</p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {contactData.faqSection?.items?.map((faq, index) => (
-              <div key={index} className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300">
-                <h4 className="text-xl font-bold text-gray-900 mb-3">{faq.question}</h4>
+              <div key={index} className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300">
+                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">{faq.question}</h4>
                 <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
               </div>
             ))}
@@ -384,19 +382,19 @@ const ContactClient = ({ initialData, error: serverError }) => {
       </section>
 
       {/* Social Media & Footer CTA */}
-      <section className="py-20 bg-gradient-to-r from-purple-600 to-blue-600 relative overflow-hidden">
+      <section className="py-10 sm:py-20 bg-gradient-to-r from-purple-600 to-blue-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center text-white mb-12">
-            <h2 className="text-5xl font-bold mb-6">{contactData.socialSection?.title}</h2>
-            <p className="text-2xl opacity-90 mb-8">{contactData.socialSection?.subtitle}</p>
+          <div className="text-center mb-8 sm:mb-12 text-white">
+            <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6">{contactData.socialSection?.title}</h2>
+            <p className="text-lg sm:text-2xl opacity-90 mb-6 sm:mb-8">{contactData.socialSection?.subtitle}</p>
           </div>
           
           <div className="text-center">
             <Link href={'/laptop'}>
-              <button className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <button className="bg-white text-purple-600 px-8 sm:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
                 {contactData.socialSection?.storeButton}
-                <ArrowRight className="w-6 h-6 inline mr-3" />
+                <ArrowRight className="w-5 sm:w-6 h-5 sm:h-6 inline mr-3" />
               </button>
             </Link>
           </div>

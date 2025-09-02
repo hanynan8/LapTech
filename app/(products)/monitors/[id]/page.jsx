@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import WhatsAppButton from '../../_whatsdrect'; // Adjust the path based on your project structure
+import WhatsAppButton from '../../_whatsForDetails'; // Adjust the path based on your project structure
 
 
 export const dynamicParams = true;

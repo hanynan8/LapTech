@@ -10,13 +10,23 @@ function goToWatssap(product = null, phoneNumber = '2001201061216') {
     message += `أريد الاستفسار عن هذا المنتج:\n\n`;
     message += `🔧 *${product.name}*\n\n`;
 
-    if (product.specs && typeof product.specs === 'object' && Object.keys(product.specs).length > 0) {
-      message += `📋 *المواصفات:*\n`;
-      Object.entries(product.specs).forEach(([key, value]) => {
-        if (value) message += `• ${key}: ${value}\n`;
-      });
-      message += `\n`;
+  if (
+    product.specs &&
+    typeof product.specs === 'object' &&
+    Object.keys(product.specs).length > 0
+  ) {
+    // حساب طول النص اللي جاي من specs
+    const specsText = Object.entries(product.specs)
+      .map(([key, value]) => (value ? `• ${key}: ${value}` : ''))
+      .join('\n');
+
+    // تحديد الحد الأقصى لعدد الحروف
+    const maxLength = 100; // غير الرقم حسب ما تحب
+
+    if (specsText.length <= maxLength) {
+      message += `📋 *المواصفات:*\n${specsText}\n\n`;
     }
+  }
 
     if (product.price) {
       message += `💰 *السعر:* ${

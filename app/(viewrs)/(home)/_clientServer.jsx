@@ -3,12 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Star, Loader, Truck, Shield, Headphones, Award, ShoppingCart, ArrowRight, Zap, Cpu, MonitorSpeaker, Gamepad2, HardDrive, Smartphone, RefreshCw } from 'lucide-react';
-
-
-function goToWatssap() {
-  window.open('https://wa.me/+2001201061216');
-}
-
+import WhatsAppButton from '../../(products)/_whatsForDetails'; // Adjust the path based on your project structure
 
 
 
@@ -132,14 +127,14 @@ const ProductCard = ({ product, categoryKey }) => {
             </div>
           </div>
           
-          <button
-            onClick={() => goToWatssap()}
+          <WhatsAppButton 
+            product={product}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 sm:py-3 rounded-xl sm:rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold text-base sm:text-lg"
             aria-label={`اطلب الان عن طريق الواتس اب`}
           >
             اطلب الان
             <ShoppingCart className="w-4 sm:w-5 h-4 sm:h-5 inline mr-2" />
-          </button>
+          </WhatsAppButton >
         </div>
       </div>
   );

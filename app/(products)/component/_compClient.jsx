@@ -580,6 +580,22 @@ const ComputerComponentsClient = ({ initialData, error }) => {
     <div className="min-h-screen bg-slate-50" dir="rtl">
       {/* CSS للتحكم في الأنيميشن */}
       <style jsx>{`
+
+
+
+        @media (max-width: 768px) {
+          section {
+            top: 64px;
+            transition: top 0.3s ease;
+          }
+        }
+        @media (min-width: 768px) {
+          section {
+            top: 0px;
+            transition: top 0.3s ease;
+          }
+        }
+
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
@@ -644,11 +660,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
       </section>
 
       {/* Search and Filter Section - محدث */}
-      <section className={`bg-white/95 backdrop-blur-sm py-4 sm:py-6 shadow-sm sticky z-30 border-b border-gray-200 mobile-nav-space ${showMobileNav ? 'with-nav' : ''}`} 
-               style={{ 
-                 top: showMobileNav ? '64px' : '0px',
-                 transition: 'top 0.3s ease'
-               }}>
+      <section className={`bg-white/95 backdrop-blur-sm py-4 sm:py-6 shadow-sm sticky z-30 border-b border-gray-200 mobile-nav-space ${showMobileNav ? 'with-nav' : ''}`} >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4">
             {/* Desktop Layout - صف واحد */}

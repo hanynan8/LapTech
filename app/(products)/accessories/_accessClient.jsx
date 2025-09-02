@@ -689,6 +689,19 @@ const ComputerComponentsClient = ({ initialData, error }) => {
           overflow: hidden;
         }
 
+        @media (max-width: 768px) {
+          section {
+            top: 64px;
+            transition: top 0.3s ease;
+          }
+        }
+        @media (min-width: 768px) {
+          section {
+            top: 0px;
+            transition: top 0.3s ease;
+          }
+        }
+
         /* تحسين التمرير للموبايل */
         html {
           scroll-behavior: smooth;
@@ -743,10 +756,6 @@ const ComputerComponentsClient = ({ initialData, error }) => {
         className={`bg-white/95 backdrop-blur-sm py-4 sm:py-6 shadow-sm sticky z-30 border-b border-gray-200 mobile-nav-space ${
           showMobileNav ? 'with-nav' : ''
         }`}
-        style={{
-          top: showMobileNav ? '64px' : '0px',
-          transition: 'top 0.3s ease',
-        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4">

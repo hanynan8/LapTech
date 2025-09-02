@@ -625,6 +625,23 @@ const ProductsClient = ({ initialData, error }) => {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+
+        /* شاشات صغيرة (موبايل) */
+        @media (max-width: 768px) {
+          section {
+            top: 64px;
+            transition: top 0.3s ease;
+          }
+        }
+        @media (min-width: 768px) {
+          section {
+            top: 0px;
+            transition: top 0.3s ease;
+          }
+        }
+        select {
+          width: auto;
+        }
         
         .animate-fadeIn {
           animation: fadeIn 0.6s ease-out forwards;
@@ -686,7 +703,6 @@ const ProductsClient = ({ initialData, error }) => {
       {/* Search and Filter Section - محدث */}
       <section className={`bg-white/95 backdrop-blur-sm py-4 sm:py-6 shadow-sm sticky z-30 border-b border-gray-200 mobile-nav-space ${showMobileNav ? 'with-nav' : ''}`} 
               style={{ 
-                top: showMobileNav ? '64px' : '0px',
                 transition: 'top 0.3s ease'
               }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

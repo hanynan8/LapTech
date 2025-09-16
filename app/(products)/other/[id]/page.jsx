@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import WhatsAppButton from '../../_whatsForDetails'; // Adjust the path based on your project structure
+import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
 
 export const dynamicParams = true;
 
@@ -719,18 +719,8 @@ export default async function ProductDetailsPage({ params }) {
               )}
 
               {/* أزرار الإجراء */}
-              <div className="flex gap-3 sm:gap-4 pt-4 flex-wrap">
-                <WhatsAppButton 
-                  product={product}
-                  className={`flex-1 min-w-40 py-3 sm:py-4 px-6 sm:px-8 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:-translate-y-1 ${
-                    isAvailable
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                  disabled={!isAvailable}
-                >
-                  {isAvailable ? 'اطلب الآن' : 'غير متوفر'}
-                </WhatsAppButton >
+              <div>
+                <AddToCartButton product={product}>اطلب الآن</AddToCartButton>
               </div>
 
               {/* معلومات سريعة - تظهر في الشاشات الصغيرة فقط */}

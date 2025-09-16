@@ -71,7 +71,7 @@ async function getFeaturedProducts() {
   
   const categories = [
     'accessories', 'laptop', 'monitors', 'component', 
-    'other', 'pc-build', 'pos', 'printers', 'storage-devices'
+    'other', 'pc-builds', 'pos', 'printers', 'storage-devices'
   ];
 
   try {

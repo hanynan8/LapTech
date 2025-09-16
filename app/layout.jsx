@@ -1,7 +1,8 @@
 import { Rubik, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import Navbar from './components/navbar';
-import Footer from './components/footer';
+import Navbar from './components/navbar/navbar';
+import Footer from './components/footer/footer';
+import LayoutClient from './layoutClient';
 
 // Edge runtime
 export const runtime = 'edge';
@@ -54,16 +55,14 @@ export const metadata = {
     'شحن سريع مصر',
     'ضمان محلي',
   ],
-  // ✅ الصيغة الصحيحة لـ authors داخل metadata: مصفوفة بسيطة
   authors: [
     {
       name: 'Hany Younan Nazer',
-      url: 'https://my-portfolio-tau-six-33.vercel.app/', // لو تحب تحط البورتفوليو هنا
+      url: 'https://my-portfolio-tau-six-33.vercel.app/',
     },
   ],
   creator: 'Hany Younan Nazer',
   publisher: 'TechLap Elite',
-  // مهم: metadataBase يجب أن يكون الدومين الرئيسي (يُستعمل لبناء روابط نسبية في الـmetadata)
   metadataBase: new URL('https://lap-tech-five.vercel.app/'),
   openGraph: {
     title: {
@@ -76,7 +75,6 @@ export const metadata = {
     siteName: 'TechLap Elite',
     images: [
       {
-        // استخدم مسار مطلق لـ OG image
         url: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=630&fit=crop',
         width: 1200,
         height: 630,
@@ -97,55 +95,46 @@ export const viewport = {
 
 // ====== JSON-LD structured data (مفصّل) ======
 const structuredData = {
-  '@context': 'https://schema.org', // خليها زي ما هي — مطلوبه علشان Google يفهم الـ JSON-LD
+  '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'Person',
       '@id': 'https://lap-tech-five.vercel.app/#person-hany',
-      // ✳️ تأكد إن هذا ال-URL هو الدومين النهائي للموقع (لو هتغير الدومين غيّره هنا كمان)
-      name: 'Hany Younan Nazer', // OK
+      name: 'Hany Younan Nazer',
       url: 'https://my-portfolio-tau-six-33.vercel.app/',
-      // 🔧 يفضل لو تحط هنا صفحة الـ About أو البروفايل الرسمية على نفس الدومين لو متوفرة
       sameAs: [
-        // صحّحت الروابط لتشمل البروتوكول
         'https://www.linkedin.com/in/hany-younan-5b7466372',
         'https://github.com/hanynan8',
         'https://www.facebook.com/hany.nan.752/',
       ],
       jobTitle: 'Full Stack Web Developer (Next/Node)',
-      // 🔧 يفضل توسيعها: مثلاً "Full Stack Web Developer" أو "Full Stack Developer (React/Node)"
     },
     {
       '@type': 'Organization',
       '@id': 'https://lap-tech-five.vercel.app/#organization',
-      name: 'TechLap Elite', // OK
+      name: 'TechLap Elite',
       url: 'https://lap-tech-five.vercel.app/',
       contactPoint: [
         {
           '@type': 'ContactPoint',
-          telephone: '+20-120-106-1216', // استبدل بالرقم الرسمي لو عندك
+          telephone: '+20-120-106-1216',
           contactType: 'customer service',
           areaServed: 'EG',
           availableLanguage: ['ar', 'en'],
         },
       ],
-      // 🔧 (اختياري لكن موصى به) أضف contactPoint لو حابب تعرض تليفون دعم/خدمة عملاء — يساعد المستخدم ومحركات البحث.
     },
     {
       '@type': 'WebSite',
       '@id': 'https://lap-tech-five.vercel.app/#website',
       url: 'https://lap-tech-five.vercel.app/',
       name: 'TechLap Elite',
-      publisher: { '@id': 'https://lap-tech-five.vercel.app/#organization' }, // OK — اربطه بالـ Organization أعلاه
+      publisher: { '@id': 'https://lap-tech-five.vercel.app/#organization' },
       potentialAction: {
         '@type': 'SearchAction',
         target:
           'https://lap-tech-five.vercel.app/search?q={search_term_string}',
-        // 🔧 تأكد إن هذا الـ endpoint شغال فعلاً ويستقبل باراميتر q
-        // 🔧 بعض المواقع تستخدم '/search?query=' أو '/search/{term}' — عدّل الصيغة لتطابق مسار البحث الفعلي
       },
-      // additionalProperty: [...],
-      // 🔧 لو عندك خصائص إضافية للموقع ممكن تضيفها هنا لكن مش ضرورية
     },
   ],
 };
@@ -156,16 +145,17 @@ export default function RootLayout({ children }) {
       <body
         className={`${rubik.className} ${geistMono.variable} antialiased bg-white text-gray-900`}
       >
-        <Navbar />
-        <main>{children}</main>
+        <LayoutClient>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </LayoutClient>
 
         {/* JSON-LD: غيّر القيم في structuredData أعلاه لو حبيت */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-
-        <Footer />
       </body>
     </html>
   );

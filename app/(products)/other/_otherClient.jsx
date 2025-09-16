@@ -1,64 +1,15 @@
-"use client";
+'use client';
 
+import AddToCartButton from '../../(products)/_addToTheCart'; // Adjust the path based on your project structure
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, Star, ShoppingCart, Heart, Eye, ArrowRight, Cpu, HardDrive, MonitorSpeaker, Zap, Fan, MemoryStick, Gamepad2, Wifi, ChevronLeft, ChevronRight, ArrowLeft, Menu, X, Home, Grid3X3 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-// دالة WhatsApp المحدثة مع معلومات الالمنتجات
-function goToWatssap(product = null, phoneNumber = '2001201061216') {
-  let message = 'السلام عليكم ورحمة الله وبركاته\n';
-
-  if (product) {
-    // رسالة مع معلومات الالمنتج
-    message += `أريد الاستفسار عن هذا المنتج:\n\n`;
-    message += `🔧 *${product.name}*\n\n`;
+import { useSession } from 'next-auth/react';
 
 
-    // السعر
-    if (product.price) {
-      message += `💰 *السعر:* ${
-        typeof product.price === 'number'
-          ? product.price.toLocaleString()
-          : product.price
-      } ${product.currency || 'ج.م'}`;
-
-      if (product.originalPrice && product.discount) {
-        message += `\n🔥 *خصم ${product.discount}%* من ${
-          typeof product.originalPrice === 'number'
-            ? product.originalPrice.toLocaleString()
-            : product.originalPrice
-        } ${product.currency || 'ج.م'}`;
-      }
-    }
-
-    // التقييم
-    if (product.rating) {
-      message += `\n⭐ *التقييم:* ${product.rating}/5\n`;
-    }
-
-    // صورة الالمنتج (رابط)
-    if (product.image) {
-      message += `\n🖼️ *صورة المنتج:*\n${product.image}\n`;
-    }
-
-    message += `\n🛒 أرغب في الحصول على مزيد من التفاصيل والطلب\n`;
-    message += `📞 يرجى التواصل معي في أقرب وقت ممكن`;
-  } else {
-    // رسالة عامة
-    message += 'أريد الاستفسار عن منتجات الكمبيوتر\n';
-    message += 'يرجى التواصل معي للمساعدة في اختيار المنتجات المناسبة';
-  }
-
-  // تشفير الرسالة للـ URL
-  const encodedMessage = encodeURIComponent(message);
-
-  // فتح WhatsApp مع الرسالة
-  window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`);
-}
-
-// Mobile Navigation Bar Component
-const MobileNavBar = ({ onMenuToggle, isMenuOpen, isVisible }) => {
+// Mobile Navigation Bar Component مع السلة
+const MobileNavBar = ({ onMenuToggle, isMenuOpen, isVisible, cartCount }) => {
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 md:hidden transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
@@ -68,13 +19,26 @@ const MobileNavBar = ({ onMenuToggle, isMenuOpen, isVisible }) => {
           <Home className="w-6 h-6 text-purple-600" />
           <span className="text-lg font-bold text-purple-600">الرئيسية</span>
         </Link>
-        
-        <button
-          onClick={onMenuToggle}
-          className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-300"
-        >
-          {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+
+        <div className="flex items-center gap-3">
+          {/* السلة */}
+          <Link href="/cart" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <ShoppingCart className="w-6 h-6 text-purple-600" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+          </Link>
+
+          {/* زر القائمة */}
+          <button
+            onClick={onMenuToggle}
+            className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-300"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -136,11 +100,13 @@ const MobileMenu = ({ isOpen, onClose, activeCategory, setActiveCategory, catego
 
 // Component Card محسن للموبايل
 const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, whatsappNumber }) => {
+  const [imgSrc, setImgSrc] = useState(product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400');
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef();
-  const [imgSrc, setImgSrc] = useState(product.image || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400');
+  const { data: session } = useSession(); // إضافة هذا السطر
 
+  // باقي الكود كما هو...
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -280,17 +246,16 @@ const ComponentCard = React.memo(({ product, favorites, toggleFavorite, index, w
             </div>
 
             {/* زر الطلب */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                goToWatssap(product, whatsappNumber);
-              }}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 sm:py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-bold hover:from-purple-700 hover:to-blue-700 text-sm sm:text-base"
-            >
-              <ShoppingCart className="w-4 h-4 inline ml-2" />
-              اطلب الان
-            </button>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <AddToCartButton product={product}>
+                  اضف الي السلة
+                </AddToCartButton>
+              </div>
           </div>
         </div>
       </Link>
@@ -391,13 +356,90 @@ const ComputerComponentsClient = ({ initialData, error }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
-  
+  const [cartCount, setCartCount] = useState(0); // إضافة عداد السلة
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20); // مناسب للموبايل
 
   // الحصول على رقم الواتساب من البيانات
   const whatsappNumber = data?.settings?.whatsappNumber || '2001201061216';
+
+  const { data: session } = useSession();
+  
+  const fetchCartCount = async () => {
+    try {
+      if (session) {
+        const res = await fetch(
+          'https://restaurant-back-end.vercel.app/api/data?collection=carts'
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const userCart = data.filter(
+            (item) => item.email === session.user.email
+          );
+          const count = userCart.reduce(
+            (sum, item) => sum + (item.quantity || 1),
+            0
+          );
+          setCartCount(count);
+        }
+      } else {
+        const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+        const count = localCart.reduce(
+          (sum, item) => sum + (item.quantity || 1),
+          0
+        );
+        setCartCount(count);
+      }
+    } catch (err) {
+      console.error('Error fetching cart count:', err);
+    }
+  };
+
+  // تحديث عداد السلة
+  useEffect(() => {
+    fetchCartCount();
+
+    // استماع للأحداث المخصصة للتحديث الفوري
+    const handleCartUpdate = () => {
+      fetchCartCount();
+    };
+    const handleProductAdded = (event) => {
+      const { quantity = 1 } = event.detail || {};
+      setCartCount((prev) => prev + quantity);
+    };
+    const handleProductRemoved = (event) => {
+      const { quantity = 1 } = event.detail || {};
+      setCartCount((prev) => Math.max(0, prev - quantity));
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    window.addEventListener('productAddedToCart', handleProductAdded);
+    window.addEventListener('productRemovedFromCart', handleProductRemoved);
+
+    // استماع لتغييرات localStorage للمستخدمين غير المسجلين
+    const handleStorageChange = (e) => {
+      if (e.key === 'cart' && !session) {
+        fetchCartCount();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // polling للمستخدمين المسجلين
+    let interval;
+    if (session) {
+      interval = setInterval(fetchCartCount, 10000);
+    }
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('productAddedToCart', handleProductAdded);
+      window.removeEventListener('productRemovedFromCart', handleProductRemoved);
+      window.removeEventListener('storage', handleStorageChange);
+      if (interval) clearInterval(interval);
+    };
+  }, [session]);
 
   // تتبع التمرير لإظهار/إخفاء الـ mobile nav
   useEffect(() => {
@@ -621,6 +663,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
         onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMenuOpen={isMobileMenuOpen}
         isVisible={showMobileNav}
+        cartCount={cartCount}
       />
 
       {/* Mobile Menu */}
@@ -701,6 +744,19 @@ const ComputerComponentsClient = ({ initialData, error }) => {
                   {filteredProducts.length} منتج
                 </span>
               </div>
+
+              {/* إضافة السلة في Desktop */}
+              <Link
+                href="/cart"
+                className="relative p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all duration-300 group flex-shrink-0"
+              >
+                <ShoppingCart size={22} className="group-hover:scale-110 transition-transform duration-200" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -left-2 min-w-[22px] h-[22px] bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-pulse">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </Link>
             </div>
 
             {/* Mobile Layout - صف واحد للكل */}
@@ -854,7 +910,12 @@ const ComputerComponentsClient = ({ initialData, error }) => {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <button 
-              onClick={() => goToWatssap(null, whatsappNumber)}
+              onClick={() => {
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+                  'مرحبا، أريد استشارة مجانية حول الطابعات'
+                )}`;
+                window.open(whatsappUrl, '_blank');
+              }}
               className="bg-white text-purple-600 px-6 sm:px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm sm:text-base"
             >
               استشارة مجانية

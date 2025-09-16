@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import WhatsAppButton from '../../_whatsForDetails'; // Adjust the path based on your project structure
+import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
 
 
 export const dynamicParams = true;
@@ -612,12 +612,8 @@ export default async function ProductDetailsPage({ params }) {
               </div>
 
               {/* أزرار الإجراء */}
-              <div className="flex gap-3 md:gap-4 pt-3 md:pt-4">
-                <WhatsAppButton
-                  product={laptop}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 md:py-4 px-4 md:px-8 rounded-2xl font-bold text-base md:text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                  اطلب الآن
-                </WhatsAppButton >
+              <div>
+                <AddToCartButton product={laptop}>اطلب الآن</AddToCartButton>
               </div>
 
               {/* الوصف */}

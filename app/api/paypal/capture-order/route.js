@@ -1,7 +1,9 @@
+export const runtime = "nodejs";
+
 import paypal from '@paypal/checkout-server-sdk';
 import getPayPalClient from '@/lib/paypal';
 import { connectMongoDB } from '@/lib/mongoAuth';
-import Payment from '@/models/payment';
+import Payment from "../../../../models/payment";
 import { NextResponse } from 'next/server';
 
 function cleanObject(obj) {

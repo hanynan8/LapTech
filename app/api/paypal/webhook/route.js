@@ -1,8 +1,9 @@
 // webhook/route.js
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { connectMongoDB } from "@/lib/mongoAuth";
-import Payment from "@/models/payment";
+import { connectMongoDB } from "../../../../lib/mongoAuth";
+import Payment from "../../../../models/payment";
 
 function cleanObject(obj) {
   if (obj === null || obj === undefined) return null;

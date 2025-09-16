@@ -25,10 +25,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // 🔹 تفعيل turbo (لو مدعوم في نسختك)
-  experimental: {
-    turbo: true,
-  },
+  // 🔹 تفعيل turbopack
+  turbopack: {},
 };
 
 export default nextConfig;

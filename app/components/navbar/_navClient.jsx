@@ -383,13 +383,12 @@ export default function Navbar({ navbarData }) {
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={() => signIn()}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium"
-                >
-                  <LogIn size={16} />
-                  تسجيل الدخول
-                </button>
+                <Link href={'/login'}>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium">
+                    <LogIn size={16} />
+                    تسجيل الدخول
+                  </button>
+                </Link>
               )}
 
               <Link
@@ -424,12 +423,11 @@ export default function Navbar({ navbarData }) {
                     </button>
                   </Link>
                 ) : (
-                  <button
-                    onClick={() => signIn()}
-                    className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-purple-600 transition-colors"
-                  >
-                    <LogIn size={20} />
-                  </button>
+                  <Link href={'/login'}>
+                    <button className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-purple-600 transition-colors">
+                      <LogIn size={20} />
+                    </button>
+                  </Link>
                 ))}
 
               <Link
@@ -586,18 +584,19 @@ export default function Navbar({ navbarData }) {
                       </li>
                     </>
                   ) : (
-                    <li className="pt-2 border-t border-gray-200 mt-4">
-                      <button
-                        onClick={() => {
-                          signIn();
-                          closeSidebar();
-                        }}
-                        className="flex items-center gap-3 w-full p-3 text-right bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
-                      >
-                        <LogIn size={18} />
-                        تسجيل الدخول
-                      </button>
-                    </li>
+                    <Link href={'/login'}>
+                      <li className="pt-2 border-t border-gray-200 mt-4">
+                        <button
+                          onClick={() => {
+                            closeSidebar();
+                          }}
+                          className="flex items-center gap-3 w-full p-3 text-right bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
+                        >
+                          <LogIn size={18} />
+                          تسجيل الدخول
+                        </button>
+                      </li>
+                    </Link>
                   )}
 
                   {/* Cart placed after auth actions (swapped) */}

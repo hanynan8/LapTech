@@ -65,5 +65,6 @@ export const config = {
     "/checkout",
     "/login",
     "/register",
+    
   ],
 };

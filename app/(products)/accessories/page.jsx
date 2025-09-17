@@ -67,7 +67,7 @@ const transformApiData = (apiData) => {
         typeof product.price === 'number'
           ? product.price
           : parseInt(product.price?.toString().replace(/[^\d]/g, '') || '0'),
-      currency: product.currency || 'ر.س',
+      currency: product.currency || 'جنية مصري',
       originalPrice: product.originalPrice
         ? typeof product.originalPrice === 'number'
           ? product.originalPrice
@@ -154,8 +154,8 @@ const getFallbackProducts = () => [
     id: 1,
     name: 'سماعة بلوتوث لاسلكية',
     category: 'headphones',
-    price: 299,
-    currency: 'ر.س',
+    price: 2990,
+    currency: 'جنية مصري',
     rating: 4.5,
     image:
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
@@ -170,8 +170,8 @@ const getFallbackProducts = () => [
     id: 2,
     name: 'فأرة ألعاب احترافية',
     category: 'mouse',
-    price: 199,
-    currency: 'ر.س',
+    price: 1990,
+    currency: 'جنية مصري',
     rating: 4.7,
     image:
       'https://images.unsplash.com/photo-1527814050087-3793815479db?w=400&h=300&fit=crop',
@@ -185,8 +185,8 @@ const getFallbackProducts = () => [
     id: 3,
     name: 'لوحة مفاتيح ميكانيكية',
     category: 'keyboard',
-    price: 399,
-    currency: 'ر.س',
+    price: 3990,
+    currency: 'جنية مصري',
     rating: 4.6,
     image:
       'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=300&fit=crop',

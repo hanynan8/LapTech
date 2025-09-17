@@ -1,76 +1,65 @@
-//api/auth/userExists/route
-
 export const runtime = "nodejs";
 
-import { connectMongoDB } from "../../../../lib/mongoAuth";
-import user from "../../../../models/user"; // تغيير من user إلى user
 import { NextResponse } from "next/server";
+import { connectMongoDB } from "../../../../lib/mongoAuth";
+import User from "../../../../models/user";
 
 export async function POST(req) {
   try {
-    await connectMongoDB();
-    
-    const { email, phone, nationalId } = await req.json();
+    const body = await req.json();
+    const { email, phone, nationalId } = body ?? {};
 
-    // إنشاء شروط البحث
+    // تأكد من وجود مدخلة واحدة على الأقل
     const searchConditions = [];
-    
-    if (email?.trim()) {
-      searchConditions.push({ email: email.trim().toLowerCase() });
+    if (email && String(email).trim()) {
+      searchConditions.push({ email: String(email).trim().toLowerCase() });
     }
-    
-    if (phone?.trim()) {
-      searchConditions.push({ phone: phone.trim() });
+    if (phone && String(phone).trim()) {
+      searchConditions.push({ phone: String(phone).trim() });
     }
-    
-    if (nationalId?.trim()) {
-      searchConditions.push({ nationalId: nationalId.trim() });
+    if (nationalId && String(nationalId).trim()) {
+      searchConditions.push({ nationalId: String(nationalId).trim() });
     }
 
-    // التحقق من وجود شروط بحث
     if (searchConditions.length === 0) {
       return NextResponse.json(
-        { 
+        {
           user: null,
-          message: "يجب تقديم بريد إلكتروني أو رقم هاتف للتحقق" 
+          message: "يجب تقديم بريد إلكتروني أو رقم هاتف أو رقم قومي للتحقق",
         },
         { status: 400 }
       );
     }
 
-    // البحث عن العميل
-    const user = await user.findOne({
-      $or: searchConditions
-    }).select("_id email phone name createdAt");
+    await connectMongoDB();
 
-    console.log("user search result: ", user);
+    // لا نستخدم نفس اسم الموديل كمتغير نتيحة البحث
+    const foundUser = await User.findOne({ $or: searchConditions })
+      .select("_id email phone name createdAt")
+      .lean();
 
-    if (user) {
-      // المستخدم موجود - إرسال معلومات محدودة
+    console.log("user search result:", foundUser);
+
+    if (foundUser) {
       return NextResponse.json({
         user: {
-          _id: user._id,
-          email: user.email,
-          phone: user.phone,
-          name: user.name,
+          _id: foundUser._id,
+          email: foundUser.email,
+          phone: foundUser.phone,
+          name: foundUser.name,
           exists: true,
-          registrationDate: user.createdAt
-        }
-      });
-    } else {
-      // المستخدم غير موجود
-      return NextResponse.json({
-        user: null
+          registrationDate: foundUser.createdAt,
+        },
       });
     }
 
+    return NextResponse.json({ user: null });
   } catch (error) {
-    console.log("User exists check error:", error);
-    
+    console.error("User exists check error:", error);
     return NextResponse.json(
-      { 
+      {
         user: null,
-        message: "حدث خطأ أثناء التحقق من وجود المستخدم" 
+        message: "حدث خطأ أثناء التحقق من وجود المستخدم",
       },
       { status: 500 }
     );

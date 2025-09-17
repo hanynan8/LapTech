@@ -27,6 +27,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showOrders, setShowOrders] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState(new Set());
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   useEffect(() => {
@@ -100,6 +101,18 @@ export default function Profile() {
   const handleSignOut = () => {
     setShowSignOutModal(false);
     signOut({ callbackUrl: '/' });
+  };
+
+  const toggleOrder = (orderId) => {
+    setExpandedOrders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
   };
 
   if (!session?.user?.email) {
@@ -226,45 +239,62 @@ export default function Profile() {
                     <div className="space-y-4">
                       {ordersData.map((order) => (
                         <article key={order._id} className="border rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
+                          <div
+                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 cursor-pointer"
+                            onClick={() => toggleOrder(order._id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') toggleOrder(order._id);
+                            }}
+                          >
                             <div className="w-full sm:w-auto">
                               <div className="text-xs text-gray-500">رقم الطلب</div>
                               <div className="font-medium text-sm text-gray-800">{order._id.slice(-8)}</div>
                               <div className="mt-2 text-xs text-gray-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> <span>{formatDate(order.orderDate)}</span></div>
                             </div>
 
-                            <div className="text-right w-full sm:w-auto">
-                              <div className="text-sm font-medium text-indigo-700">{formatPrice(order.total)} {order.items?.[0]?.currency}</div>
-                              <div className="mt-2">
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                  {order.status === 'completed' && <CheckCircle className="w-3 h-3" />}
-                                  {order.status === 'completed' ? 'مكتمل' : order.status}
-                                </span>
+                            <div className="text-right w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3">
+                              <div>
+                                <div className="text-sm font-medium text-indigo-700">{formatPrice(order.total)} {order.items?.[0]?.currency}</div>
+                                <div className="mt-2">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                    {order.status === 'completed' && <CheckCircle className="w-3 h-3" />}
+                                    {order.status === 'completed' ? 'مكتمل' : order.status}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="p-1 sm:p-2 bg-gray-100 rounded-full shadow-sm">
+                                {expandedOrders.has(order._id) ? <ChevronUp className="w-3 sm:w-4 h-3 sm:h-4 text-indigo-600" /> : <ChevronDown className="w-3 sm:w-4 h-3 sm:h-4 text-indigo-600" />}
                               </div>
                             </div>
                           </div>
 
-                          <div className="bg-gray-50 rounded-lg p-2 sm:p-3 mb-3">
-                            <h5 className="text-sm font-medium text-gray-800 mb-2">المنتجات</h5>
-                            <div className="space-y-2">
-                              {order.items?.map((item) => (
-                                <div key={item._id} className="flex items-start gap-3 p-2 bg-white rounded-lg">
-                                  <div className="w-12 h-12 relative rounded-md overflow-hidden bg-white flex-shrink-0">
-                                    <Image src={item.image} alt={item.name} fill className="object-cover" sizes="48px" />
-                                  </div>
-                                  <div className="flex-grow min-w-0">
-                                    <div className="text-sm font-medium text-gray-800 truncate">{item.name}</div>
-                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-gray-600 mt-1 gap-1 sm:gap-0">
-                                      <span>الكمية: {item.quantity}</span>
-                                      <span className="font-medium">{formatPrice(item.price)} {item.currency}</span>
+                          {expandedOrders.has(order._id) && (
+                            <>
+                              <div className="bg-gray-50 rounded-lg p-2 sm:p-3 mb-3">
+                                <h5 className="text-sm font-medium text-gray-800 mb-2">المنتجات</h5>
+                                <div className="space-y-2">
+                                  {order.items?.map((item) => (
+                                    <div key={item._id} className="flex items-start gap-3 p-2 bg-white rounded-lg">
+                                      <div className="w-12 h-12 relative rounded-md overflow-hidden bg-white flex-shrink-0">
+                                        <Image src={item.image} alt={item.name} fill className="object-cover" sizes="48px" />
+                                      </div>
+                                      <div className="flex-grow min-w-0">
+                                        <div className="text-sm font-medium text-gray-800 truncate">{item.name}</div>
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-gray-600 mt-1 gap-1 sm:gap-0">
+                                          <span>الكمية: {item.quantity}</span>
+                                          <span className="font-medium">{formatPrice(item.price)} {item.currency}</span>
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
+                              </div>
 
-                          <div className="text-xs text-gray-600">طريقة الدفع: <span className="font-medium text-gray-800">{order.paymentMethod}</span></div>
+                              <div className="text-xs text-gray-600">طريقة الدفع: <span className="font-medium text-gray-800">{order.paymentMethod}</span></div>
+                            </>
+                          )}
                         </article>
                       ))}
                     </div>

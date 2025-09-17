@@ -1,3 +1,6 @@
+export const runtime = 'nodejs';
+
+
 // app/api/paypal/create-order/route.js
 import { NextResponse } from "next/server";
 import paypal from "@paypal/checkout-server-sdk";

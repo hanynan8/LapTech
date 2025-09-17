@@ -135,6 +135,49 @@ export async function POST(req) {
         payment: cleanedPayment,
         capture: cleanedCapture
       });
+
+      // مسح السلة بعد نجاح الدفع
+      if (saved.payer.email) {
+        try {
+          // جلب جميع السلات
+          const cartsResponse = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=carts', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (cartsResponse.ok) {
+            const carts = await cartsResponse.json();
+            
+            // البحث عن جميع السلات المتطابقة مع الإيميل
+            const userCarts = carts.filter(cart => cart.email === saved.payer.email);
+            
+            if (userCarts.length > 0) {
+              // حذف متوازي لجميع عناصر السلة
+              await Promise.all(
+                userCarts.map(item => 
+                  fetch(`https://restaurant-back-end.vercel.app/api/data?collection=carts&id=${item._id}`, {
+                    method: 'DELETE',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  })
+                )
+              );
+              
+              console.log('✅ Cart cleared successfully for email:', saved.payer.email, 'Deleted items:', userCarts.length);
+            } else {
+              console.log('ℹ️ No matching carts found for email:', saved.payer.email);
+            }
+          } else {
+            console.error('⚠️ Failed to fetch carts:', cartsResponse.statusText);
+          }
+        } catch (cartErr) {
+          console.error('❌ Cart clearance error:', cartErr);
+          // لا نوقف العملية، فقط نسجل الخطأ
+        }
+      }
       
       return NextResponse.json(responseData, { status: 201 });
       

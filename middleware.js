@@ -1,27 +1,34 @@
-// middleware-debug.js (استبدل مؤقتًا middleware.js)
+// middleware.js
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(req) {
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  // طبع الـ cookies الخام اللي واصلة للـ Edge function
-  console.log("MW DEBUG pathname:", pathname);
-  console.log("MW DEBUG cookie header:", req.headers.get("cookie"));
+  if (token && (pathname === "/api/auth/signin" || pathname === "/api/auth/AuthButtons/signin")) {
+    return NextResponse.redirect(new URL("/profile", req.url));
+  }
 
-  const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
-  console.log("MW DEBUG secret exists:", !!secret);
+  if (!token && pathname.startsWith("/profile")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 
-  try {
-    const token = await getToken({ req, secret, secureCookie: process.env.NODE_ENV === "production" });
-    console.log("MW DEBUG token present:", !!token, "token:", token ? { id: token?.sub || token?.id } : null);
-  } catch (err) {
-    console.error("MW DEBUG getToken error:", err);
+  if (token && pathname.startsWith("/login")) {
+    return NextResponse.redirect(new URL("/profile", req.url));
+  }
+
+  if (token && pathname.startsWith("/register")) {
+    return NextResponse.redirect(new URL("/profile", req.url));
+  }
+  
+  if (!token && pathname.startsWith("/pay")) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/profile/:path*", "/profile", "/pay/:path*", "/pay"]
+  matcher: ["/profile/:path*", "/api/auth/signin", "/api/auth/AuthButtons/signin", '/profile', '/register', '/login', '/pay'],
 };

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginForm({
@@ -15,6 +15,52 @@ export default function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // مراقبة حالة الـ session وإعادة التوجيه للـ profile
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.replace('/profile');
+    }
+  }, [session, status, router]);
+
+  // عرض شاشة تحميل إذا كان النظام يتحقق من الـ session
+  if (status === 'loading') {
+    return (
+      <div
+        dir="rtl"
+        className="font-arabic min-h-screen flex items-center justify-center bg-gray-50"
+      >
+        <div className="flex items-center gap-3">
+          <svg
+            className="animate-spin h-8 w-8 text-purple-600"
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8z"
+            ></path>
+          </svg>
+          <span className="text-gray-600">جاري التحقق من حالة تسجيل الدخول...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // إذا كان المستخدم مسجل دخوله بالفعل، لا نعرض نموذج تسجيل الدخول
+  if (status === 'authenticated') {
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,9 +88,8 @@ export default function LoginForm({
         return;
       }
 
-      // نجاح — لو السيرفر رجع url يمكن إعادة التوجيه لها، وإلا نذهب للصفحة الرئيسية
-      const redirectUrl = res?.url ?? '/';
-      router.replace(redirectUrl);
+      // نجاح — الـ useEffect سيتولى إعادة التوجيه تلقائياً عند تحديث الـ session
+      // لا حاجة لإعادة توجيه يدوية هنا لأن useSession سيتحديث تلقائياً
     } catch (err) {
       console.error('Login error:', err);
       setError('حصل خطأ، حاول مرة أخرى لاحقاً.');

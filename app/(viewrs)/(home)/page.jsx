@@ -2,6 +2,7 @@
 import { Suspense } from 'react';
 import HomePage from './_clientServer';
 import { Loader } from 'lucide-react';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 // ISR Configuration - revalidate every hour (3600 seconds)
 export const revalidate = 86400;
@@ -25,7 +26,7 @@ export const metadata = {
 
 // Server function to fetch initial data
 async function getHomeData() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://restaurant-back-end.vercel.app/api/data';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${getBaseUrl()}/api/data`;
   
   try {
     const response = await fetch(apiUrl, {
@@ -67,7 +68,7 @@ async function getHomeData() {
 
 // Server function to fetch featured products from all categories
 async function getFeaturedProducts() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://restaurant-back-end.vercel.app/api/data';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${getBaseUrl()}/api/data`;
   
   const categories = [
     'accessories', 'laptop', 'monitors', 'component', 
@@ -153,7 +154,7 @@ export default async function Home() {
     homeData: homeResult?.homeData || null,
     featuredProducts: featuredProducts || [],
     timestamp: homeResult?.timestamp || new Date().toISOString(),
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'https://restaurant-back-end.vercel.app/api/data'
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || `${getBaseUrl()}/api/data`
   };
 
   return (

@@ -1,4 +1,5 @@
 import Navbar from './_navClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 // ISR revalidation period (in seconds) for the page
 export const revalidate = 86400;
@@ -9,7 +10,7 @@ async function fetchNavbarData() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-    const res = await fetch('https://restaurant-back-end.vercel.app/api/data', {
+    const res = await fetch(`${getBaseUrl()}/api/data`, {
       signal: controller.signal,
       next: { revalidate: 86400 }, // Revalidate API response every 3600 seconds
     });

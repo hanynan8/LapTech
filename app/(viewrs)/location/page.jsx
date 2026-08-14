@@ -1,4 +1,5 @@
 import LocationPageClient from './_clientServer';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 export const metadata = {
   title: 'موقعنا',
@@ -62,7 +63,7 @@ function extractLocationData(data) {
 
 async function getLocationData() {
   try {
-    const response = await fetch('https://restaurant-back-end.vercel.app/api/data', {
+    const response = await fetch(`${getBaseUrl()}/api/data`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

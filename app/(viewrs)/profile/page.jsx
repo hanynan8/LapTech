@@ -42,7 +42,7 @@ export default function Profile() {
 
       try {
         const usersResponse = await fetch(
-          'https://restaurant-back-end.vercel.app/api/data?collection=users',
+          '/api/data?collection=users',
           { cache: 'no-store' }
         );
         const usersData = await usersResponse.json();
@@ -53,7 +53,7 @@ export default function Profile() {
         setUserData(foundUser || null);
 
         const ordersResponse = await fetch(
-          'https://restaurant-back-end.vercel.app/api/data?collection=profile',
+          '/api/data?collection=profile',
           { cache: 'no-store' }
         );
         const allOrders = await ordersResponse.json();

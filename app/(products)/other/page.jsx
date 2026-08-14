@@ -1,5 +1,6 @@
 // app/other-products/page.js - Server Component
 import OtherProductsClient from './_otherClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 
 export const metadata = {
@@ -25,7 +26,7 @@ const OtherProductsPage = async () => {
   try {
     // جلب البيانات من الخادم
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=other',
+      `${getBaseUrl()}/api/data?collection=other`,
       {
         method: 'GET',
         headers: {

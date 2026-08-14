@@ -1,3 +1,4 @@
+import { getBaseUrl } from "@/lib/getBaseUrl";
 "use client"
 
 // app/contact/ContactClient.jsx (Client Component)
@@ -63,7 +64,7 @@ const ContactClient = ({ initialData, error: serverError }) => {
       const fetchContactData = async () => {
         try {
           setLoading(true);
-          const response = await fetch('https://restaurant-back-end.vercel.app/api/data');
+          const response = await fetch(`${getBaseUrl()}/api/data`);
           if (!response.ok) {
             throw new Error('Failed to fetch contact data');
           }

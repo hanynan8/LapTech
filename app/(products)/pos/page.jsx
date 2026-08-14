@@ -1,4 +1,5 @@
 import POSClient from './_posClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 // Metadata للصفحة
 export const metadata = {
@@ -52,7 +53,7 @@ export const metadata = {
 async function fetchPOSData() {
   try {
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=pos',
+      `${getBaseUrl()}/api/data?collection=pos`,
       {
         method: 'GET',
         headers: {

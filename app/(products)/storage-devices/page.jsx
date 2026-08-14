@@ -1,12 +1,13 @@
 // app/storage-devices/page.tsx - Server Component
 import { Suspense } from 'react';
 import StorageClient from './_storageClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 // Server-side data fetching
 async function getStorageData() {
   try {
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data',
+      `${getBaseUrl()}/api/data`,
       {
         method: 'GET',
         headers: {

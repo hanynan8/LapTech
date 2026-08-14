@@ -1,5 +1,6 @@
 // app/pc-builds/page.js - Server Component
 import PCBuildsClient from './_pcClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 
 // بنية metadata محسنة ومفصلة
@@ -100,7 +101,7 @@ const PCBuildsPage = async () => {
   try {
     // جلب البيانات من الخادم
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=pc-build',
+      `${getBaseUrl()}/api/data?collection=pc-build`,
       {
         method: 'GET',
         headers: {

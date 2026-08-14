@@ -1,3 +1,4 @@
+import { getBaseUrl } from "@/lib/getBaseUrl";
 // app/about/page.js (Server Component)
 
 import AboutUsClient from './_clientServer';
@@ -18,7 +19,7 @@ export const metadata = {
 // Fetch data function with revalidation
 async function getAboutData() {
   try {
-    const response = await fetch('https://restaurant-back-end.vercel.app/api/data', {
+    const response = await fetch(`${getBaseUrl()}/api/data`, {
       next: { 
         revalidate: 86400 // Revalidate every hour
       },

@@ -1,4 +1,5 @@
 // app/laptop/page.js (Server Component)
+import { getBaseUrl } from "@/lib/getBaseUrl";
 import React from 'react';
 import ProductsClient from './_lapClient';
 import BrettyButton from './brettybtn';
@@ -22,7 +23,7 @@ export const metadata = {
 // Server Component - يتم تشغيله على الخادم
 async function fetchProductsData() {
   try {
-    const response = await fetch('https://restaurant-back-end.vercel.app/api/data', {
+    const response = await fetch(`${getBaseUrl()}/api/data`, {
       next: { revalidate: 86000 } // 24 ساعة تقريباً
     });
     

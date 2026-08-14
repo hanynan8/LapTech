@@ -2,13 +2,14 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 export const dynamicParams = true;
 
 // دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
-    const res = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=other', {
+    const res = await fetch(`${getBaseUrl()}/api/data?collection=other`, {
       next: { revalidate: false }
     });
     
@@ -50,7 +51,7 @@ async function RelatedProducts({ product }) {
         const relatedPromises = product.details.relatedProducts.slice(0, 8).map(async (id) => {
           try {
             const res = await fetch(
-              `https://restaurant-back-end.vercel.app/api/data?collection=other&id=${id}`,
+              `${getBaseUrl()}/api/data?collection=other&id=${id}`,
               { 
                 next: { revalidate: 86000 },
                 signal: AbortSignal.timeout(5000)
@@ -76,7 +77,7 @@ async function RelatedProducts({ product }) {
       if (relatedProducts.length < 4 && product.category) {
         try {
           const categoryRes = await fetch(
-            `https://restaurant-back-end.vercel.app/api/data?collection=other&category=${encodeURIComponent(product.category)}&limit=12`,
+            `${getBaseUrl()}/api/data?collection=other&category=${encodeURIComponent(product.category)}&limit=12`,
             { 
               next: { revalidate: 1800 },
               signal: AbortSignal.timeout(5000)
@@ -343,7 +344,7 @@ export default async function ProductDetailsPage({ params }) {
   async function fetchProductById(id) {
     try {
       const res = await fetch(
-        `https://restaurant-back-end.vercel.app/api/data?collection=other&id=${id}`,
+        `${getBaseUrl()}/api/data?collection=other&id=${id}`,
         { 
           next: { revalidate: 900 },
           signal: AbortSignal.timeout(8000)

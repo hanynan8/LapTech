@@ -204,7 +204,7 @@ export default async function AccessoriesPage() {
 
   try {
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data',{
+      '/api/data',{
         next: { revalidate: 86000 } // 24 ساعة تقريباً
       }
     );

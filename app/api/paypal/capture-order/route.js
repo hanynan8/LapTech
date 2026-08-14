@@ -1,3 +1,4 @@
+import { getBaseUrl } from "@/lib/getBaseUrl";
 export const runtime = "nodejs";
 
 import paypal from '@paypal/checkout-server-sdk';
@@ -140,7 +141,7 @@ export async function POST(req) {
       if (saved.payer.email) {
         try {
           // جلب جميع السلات
-          const cartsResponse = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=carts', {
+          const cartsResponse = await fetch(`${getBaseUrl()}/api/data?collection=carts`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export async function POST(req) {
               // حذف متوازي لجميع عناصر السلة
               await Promise.all(
                 userCarts.map(item => 
-                  fetch(`https://restaurant-back-end.vercel.app/api/data?collection=carts&id=${item._id}`, {
+                  fetch(`${getBaseUrl()}/api/data?collection=carts&id=${item._id}`, {
                     method: 'DELETE',
                     headers: {
                       'Content-Type': 'application/json',

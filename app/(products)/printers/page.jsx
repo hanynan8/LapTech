@@ -1,5 +1,6 @@
 // app/printers/page.js (Server Component)
 import PrintersClient from './_printersClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 
 // تصدير metadata للصفحة
@@ -23,7 +24,7 @@ export const metadata = {
 async function fetchPrintersData() {
   try {
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=printers',
+      `${getBaseUrl()}/api/data?collection=printers`,
       {
         method: 'GET',
         headers: {

@@ -96,7 +96,7 @@ const LocationPageClient = ({ initialData, error: serverError }) => {
         try {
           setLoading(true);
           const response = await fetch(
-            'https://restaurant-back-end.vercel.app/api/data'
+            '/api/data'
           );
 
           if (!response.ok) {

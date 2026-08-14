@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 export const dynamicParams = true;
 
@@ -10,7 +11,7 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   try {
     const res = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=accessories',
+      `${getBaseUrl()}/api/data?collection=accessories`,
       {
         next: { revalidate: false },
       }
@@ -56,7 +57,7 @@ async function RelatedProducts({ product }) {
           .map(async (id) => {
             try {
               const res = await fetch(
-                `https://restaurant-back-end.vercel.app/api/data?collection=accessories&id=${id}`,
+                `${getBaseUrl()}/api/data?collection=accessories&id=${id}`,
                 {
                   next: { revalidate: 86000 },
                   signal: AbortSignal.timeout(5000),
@@ -81,7 +82,7 @@ async function RelatedProducts({ product }) {
       if (relatedProducts.length < 4 && product.category) {
         try {
           const categoryRes = await fetch(
-            `https://restaurant-back-end.vercel.app/api/data?collection=accessories`,
+            `${getBaseUrl()}/api/data?collection=accessories`,
             {
               next: { revalidate: 1800 },
               signal: AbortSignal.timeout(5000),
@@ -391,7 +392,7 @@ function formatDate(dateStr) {
 async function fetchAccessoriesData() {
   try {
     const res = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=accessories',
+      `${getBaseUrl()}/api/data?collection=accessories`,
       {
         next: { revalidate: 3600 },
         signal: AbortSignal.timeout(10000),

@@ -1,5 +1,6 @@
 // app/monitors/page.js - Server Component
 import MonitorsClient from './_monClient';
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 
 
@@ -24,7 +25,7 @@ const MonitorsPage = async () => {
   try {
     // جلب البيانات من الخادم
     const response = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=monitors',
+      `${getBaseUrl()}/api/data?collection=monitors`,
       {
         method: 'GET',
         headers: {

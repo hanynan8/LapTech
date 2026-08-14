@@ -1,4 +1,5 @@
 // app/components/page.js - Server Component
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 import ComputerComponentsClient from './_compClient';
 
@@ -25,7 +26,7 @@ export const metadata = {
 // دالة جلب البيانات من الـ API على الخادم
 async function fetchComponentsData() {
   try {
-    const response = await fetch('https://restaurant-back-end.vercel.app/api/data?collection=component', {
+    const response = await fetch(`${getBaseUrl()}/api/data?collection=component`, {
       next: { revalidate: 86000 } // 24 ساعة تقريباً
     });
     

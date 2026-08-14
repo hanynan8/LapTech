@@ -454,7 +454,7 @@ const ComputerComponentsClient = ({ initialData, error }) => {
     try {
       if (session) {
         const res = await fetch(
-          'https://restaurant-back-end.vercel.app/api/data?collection=carts'
+          '/api/data?collection=carts'
         );
         if (res.ok) {
           const data = await res.json();

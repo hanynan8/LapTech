@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 const API_URL =
-  'https://restaurant-back-end.vercel.app/api/data?collection=carts';
+  '/api/data?collection=carts';
 
 const CartPage = () => {
   const { data: session } = useSession();

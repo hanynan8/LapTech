@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 
 export const dynamicParams = true;
@@ -10,7 +11,7 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   try {
     const res = await fetch(
-      'https://restaurant-back-end.vercel.app/api/data?collection=storage-devices',
+      `${getBaseUrl()}/api/data?collection=storage-devices`,
       {
         next: { revalidate: false },
       }
@@ -45,7 +46,7 @@ export async function generateStaticParams() {
 async function fetchProductById(id) {
   try {
     const res = await fetch(
-      `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices&id=${id}`,
+      `${getBaseUrl()}/api/data?collection=storage-devices&id=${id}`,
       {
         next: { revalidate: 3600 },
         signal: AbortSignal.timeout(8000),
@@ -69,7 +70,7 @@ async function fetchProductById(id) {
 async function fetchRelatedProducts(categoryId, excludeId, limit = 8) {
   try {
     const res = await fetch(
-      `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices&category=${encodeURIComponent(
+      `${getBaseUrl()}/api/data?collection=storage-devices&category=${encodeURIComponent(
         categoryId
       )}&limit=${limit}`,
       {
@@ -108,7 +109,7 @@ async function fetchRelatedProducts(categoryId, excludeId, limit = 8) {
 async function fetchCategoryInfo(categoryId) {
   try {
     const res = await fetch(
-      `https://restaurant-back-end.vercel.app/api/data?collection=storage-devices`,
+      `${getBaseUrl()}/api/data?collection=storage-devices`,
       {
         next: { revalidate: 86000 },
         signal: AbortSignal.timeout(8000),

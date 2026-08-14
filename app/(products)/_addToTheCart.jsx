@@ -79,7 +79,7 @@ export default function AddToCartButton({ product, className = '', children }) {
     if (session) {
       try {
         const response = await fetch(
-          'https://restaurant-back-end.vercel.app/api/data?collection=carts',
+          '/api/data?collection=carts',
           {
             method: 'POST',
             headers: {

@@ -14,8 +14,8 @@ export default function PayPage() {
   const scriptRef = useRef(null);
 
   const EGP_TO_USD_RATE = 50; // حوالي 50 جنيه = 1 دولار (تحديث حسب السعر الحالي)
-  const CART_API_URL = 'https://restaurant-back-end.vercel.app/api/data?collection=carts';
-  const PROFILE_API_URL = 'https://restaurant-back-end.vercel.app/api/data?collection=profile';
+  const CART_API_URL = '/api/data?collection=carts';
+  const PROFILE_API_URL = '/api/data?collection=profile';
 
   useEffect(() => {
     // جلب بيانات الدفع من localStorage

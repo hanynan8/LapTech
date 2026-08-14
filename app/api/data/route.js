@@ -1,170 +1,226 @@
-// // app/api/cart/route.js
-// import mongoose from "mongoose";
+// app/api/data/route.js
+//
+// هدف الملف: يبقى بديل محلي كامل لـ /api/data
+// بحيث المشروع يشتغل بالكامل على قاعدة البيانات المحلية (MONGO_URI) من غير أي اعتماد
+// على أي سيرفر خارجي.
+//
+// الأنماط المدعومة (نفس الأنماط اللي كانت مستخدمة في المشروع مع السيرفر القديم):
+//
+//   GET  /api/data
+//     -> بيرجع كل الـ "collections" الخاصة بالمنتجات في object واحد:
+//        { laptop: [...], component: [...], other: [...], accessories: [...],
+//          printers: [...], monitors: [...], pos: [...], "pc-build": [...],
+//          "storage-devices": [...] }
+//
+//   GET  /api/data?collection=carts
+//     -> بيرجع كل الـ documents في الـ collection ده كـ array مباشرة
+//        (وده المستخدم في السلة/البروفايل/اليوزرز)
+//
+//   GET  /api/data?collection=carts&email=someone@example.com
+//     -> فلترة حسب الإيميل (اختياري، لو محتاجينه في السيرفر بدل الفرونت)
+//
+//   GET  /api/data?collection=laptop&id=123
+//     -> بيدور على _id في الـ collection، ولو مالقاش، بيدور جوا مصفوفة
+//        "products" المتداخلة (nested) جوا الـ documents عن منتج بنفس
+//        الـ id بتاعه (زي ما كان شغال في المنتجات)
+//
+//   GET  /api/data?collection=laptop&category=gaming&limit=12
+//     -> فلترة المنتجات المتداخلة جوا "products" حسب الفئة، مع حد أقصى للعدد
+//
+//   POST /api/data?collection=carts   (body: JSON)
+//     -> إضافة document جديد للـ collection
+//
+//   DELETE /api/data?collection=carts&id=<_id>
+//     -> حذف document بالـ _id بتاعه من الـ collection
+//
+// ملاحظة: لازم يكون عندك متغير البيئة MONGO_URI مضبوط (في .env.local) وبيشاور
+// على نفس قاعدة البيانات اللي كان بيستخدمها الباك إند الخارجي، عشان تلاقي نفس
+// البيانات بالظبط.
 
-// /**
-//  * ----- Mongo connection (مستخدم نفس الطريقة من ملف data) -----
-//  */
-// const MONGO_URI = process.env.MONGO_URI;
-// if (!MONGO_URI) {
-//   console.warn("Warning: MONGO_URI not defined in environment");
-// }
+import { connectToDatabase } from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
-// if (!globalThis._mongo) globalThis._mongo = { conn: null, promise: null };
+// أسماء الـ collections الخاصة بصفحات المنتجات، دي اللي بترجع لما محدش يحدد "collection"
+const PRODUCT_COLLECTIONS = [
+  "laptop",
+  "component",
+  "other",
+  "accessories",
+  "printers",
+  "monitors",
+  "pos",
+  "pc-build",
+  "storage-devices",
+];
 
-// async function connectToMongo() {
-//   if (globalThis._mongo.conn) return globalThis._mongo.conn;
-//   if (!MONGO_URI) throw new Error("Please set MONGO_URI environment variable");
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
-//   if (!globalThis._mongo.promise) {
-//     globalThis._mongo.promise = mongoose
-//       .connect(MONGO_URI, {
-//         useNewUrlParser: true,
-//         useUnifiedTopology: true,
-//       })
-//       .then((mongooseInstance) => mongooseInstance);
-//   }
+function toObjectIdSafe(id) {
+  try {
+    if (!id || !ObjectId.isValid(id)) return null;
+    return new ObjectId(id);
+  } catch {
+    return null;
+  }
+}
 
-//   globalThis._mongo.conn = await globalThis._mongo.promise;
-//   return globalThis._mongo.conn;
-// }
+// دور جوا مصفوفة "products" المتداخلة داخل documents الـ collection عن عنصر بنفس الـ id
+function findNestedProductById(docs, id) {
+  for (const doc of docs) {
+    if (Array.isArray(doc.products)) {
+      const found = doc.products.find((p) => String(p?.id) === String(id));
+      if (found) return found;
+    }
+  }
+  return null;
+}
 
-// /**
-//  * Cart Schema
-//  */
-// const cartSchema = new mongoose.Schema({
-//   userId: { type: String, required: true, unique: true },
-//   items: [{
-//     id: String,
-//     name: String,
-//     price: mongoose.Schema.Types.Mixed, // يمكن أن يكون رقم أو نص
-//     currency: { type: String, default: 'ج.م' },
-//     image: String,
-//     quantity: { type: Number, default: 1 }
-//   }],
-//   updatedAt: { type: Date, default: Date.now }
-// });
+// فلترة المنتجات المتداخلة حسب الفئة
+function filterNestedByCategory(docs, category, limit) {
+  let result = [];
+  for (const doc of docs) {
+    if (Array.isArray(doc.products)) {
+      result.push(
+        ...doc.products.filter(
+          (p) => String(p?.category).toLowerCase() === String(category).toLowerCase()
+        )
+      );
+    }
+  }
+  if (limit) {
+    const n = Number(limit);
+    if (!Number.isNaN(n) && n > 0) result = result.slice(0, n);
+  }
+  return result;
+}
 
-// const Cart = mongoose.models.Cart || mongoose.model("Cart", cartSchema, "carts");
+/**
+ * GET /api/data
+ */
+export async function GET(request) {
+  try {
+    const db = await connectToDatabase();
+    const url = new URL(request.url);
+    const collection = url.searchParams.get("collection");
+    const id = url.searchParams.get("id");
+    const category = url.searchParams.get("category");
+    const limit = url.searchParams.get("limit");
+    const email = url.searchParams.get("email");
 
-// /**
-//  * Helper functions
-//  */
-// function jsonResponse(data, status = 200) {
-//   return new Response(JSON.stringify(data), {
-//     status,
-//     headers: { "Content-Type": "application/json" },
-//   });
-// }
+    // مفيش collection محدد => رجّع كل collections المنتجات مرة واحدة
+    if (!collection) {
+      const entries = await Promise.all(
+        PRODUCT_COLLECTIONS.map(async (col) => {
+          const docs = await db.collection(col).find({}).toArray();
+          return [col, docs];
+        })
+      );
+      return jsonResponse(Object.fromEntries(entries));
+    }
 
-// async function parseBody(request) {
-//   try {
-//     return await request.json();
-//   } catch (err) {
-//     return null;
-//   }
-// }
+    const coll = db.collection(collection);
 
-// /**
-//  * GET /api/cart?userId=guest
-//  * إحضار سلة المستخدم
-//  */
-// export async function GET(request) {
-//   try {
-//     await connectToMongo();
-    
-//     const url = new URL(request.url);
-//     const userId = url.searchParams.get("userId");
-    
-//     if (!userId) {
-//       return jsonResponse({ error: "userId is required" }, 400);
-//     }
+    // البحث بالـ id: جرب _id الحقيقي الأول، ولو مش لاقي، دور جوا "products" المتداخلة
+    if (id) {
+      const oid = toObjectIdSafe(id);
+      let doc = null;
 
-//     const cart = await Cart.findOne({ userId });
-    
-//     if (!cart) {
-//       return jsonResponse({ items: [] }, 200);
-//     }
+      if (oid) {
+        doc = await coll.findOne({ _id: oid });
+      }
 
-//     return jsonResponse({ items: cart.items }, 200);
-    
-//   } catch (err) {
-//     console.error("Cart GET error:", err);
-//     return jsonResponse({ error: err.message || "Internal server error" }, 500);
-//   }
-// }
+      if (doc) return jsonResponse(doc);
 
-// /**
-//  * POST /api/cart?userId=guest
-//  * حفظ/تحديث سلة المستخدم
-//  */
-// export async function POST(request) {
-//   try {
-//     await connectToMongo();
-    
-//     const url = new URL(request.url);
-//     const userId = url.searchParams.get("userId");
-    
-//     if (!userId) {
-//       return jsonResponse({ error: "userId is required" }, 400);
-//     }
+      const docs = await coll.find({}).toArray();
+      const nestedProduct = findNestedProductById(docs, id);
+      if (nestedProduct) return jsonResponse(nestedProduct);
 
-//     const body = await parseBody(request);
-//     if (!body || !Array.isArray(body.items)) {
-//       return jsonResponse({ error: "Invalid request body. Expected { items: [] }" }, 400);
-//     }
+      return jsonResponse({ error: "Not found" }, 404);
+    }
 
-//     // تحديث أو إنشاء السلة
-//     const cart = await Cart.findOneAndUpdate(
-//       { userId },
-//       { 
-//         userId, 
-//         items: body.items,
-//         updatedAt: new Date()
-//       },
-//       { 
-//         new: true, 
-//         upsert: true, // إنشاء جديد إذا لم يوجد
-//         runValidators: true 
-//       }
-//     );
+    // فلترة حسب الفئة (وبالحد الأقصى للعدد لو موجود)
+    if (category) {
+      const docs = await coll.find({}).toArray();
+      return jsonResponse(filterNestedByCategory(docs, category, limit));
+    }
 
-//     return jsonResponse({ 
-//       success: true, 
-//       items: cart.items,
-//       message: "Cart saved successfully"
-//     }, 200);
-    
-//   } catch (err) {
-//     console.error("Cart POST error:", err);
-//     return jsonResponse({ error: err.message || "Internal server error" }, 500);
-//   }
-// }
+    // جلب كل الـ documents في الـ collection (مع فلترة اختيارية بالإيميل)
+    const filter = email ? { email } : {};
+    const docs = await coll.find(filter).toArray();
+    return jsonResponse(docs);
+  } catch (err) {
+    console.error("GET /api/data error:", err);
+    return jsonResponse({ error: err.message || "Internal server error" }, 500);
+  }
+}
 
-// /**
-//  * DELETE /api/cart?userId=guest
-//  * مسح سلة المستخدم
-//  */
-// export async function DELETE(request) {
-//   try {
-//     await connectToMongo();
-    
-//     const url = new URL(request.url);
-//     const userId = url.searchParams.get("userId");
-    
-//     if (!userId) {
-//       return jsonResponse({ error: "userId is required" }, 400);
-//     }
+/**
+ * POST /api/data?collection=carts
+ * بيضيف document جديد للـ collection المحددة
+ */
+export async function POST(request) {
+  try {
+    const db = await connectToDatabase();
+    const url = new URL(request.url);
+    const collection = url.searchParams.get("collection");
 
-//     const result = await Cart.deleteOne({ userId });
-    
-//     return jsonResponse({ 
-//       success: true,
-//       deleted: result.deletedCount > 0,
-//       message: "Cart cleared successfully"
-//     }, 200);
-    
-//   } catch (err) {
-//     console.error("Cart DELETE error:", err);
-//     return jsonResponse({ error: err.message || "Internal server error" }, 500);
-//   }
-// }
+    if (!collection) {
+      return jsonResponse({ error: "collection query param is required" }, 400);
+    }
+
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return jsonResponse({ error: "Invalid or missing JSON body" }, 400);
+    }
+
+    const coll = db.collection(collection);
+    const doc = {
+      ...body,
+      createdAt: body.createdAt || new Date().toISOString(),
+    };
+
+    const result = await coll.insertOne(doc);
+    return jsonResponse({ _id: result.insertedId, ...doc }, 201);
+  } catch (err) {
+    console.error("POST /api/data error:", err);
+    return jsonResponse({ error: err.message || "Internal server error" }, 500);
+  }
+}
+
+/**
+ * DELETE /api/data?collection=carts&id=<_id>
+ * بيحذف document بالـ _id بتاعه
+ */
+export async function DELETE(request) {
+  try {
+    const db = await connectToDatabase();
+    const url = new URL(request.url);
+    const collection = url.searchParams.get("collection");
+    const id = url.searchParams.get("id");
+
+    if (!collection || !id) {
+      return jsonResponse({ error: "collection and id query params are required" }, 400);
+    }
+
+    const oid = toObjectIdSafe(id);
+    if (!oid) {
+      return jsonResponse({ error: "Invalid id" }, 400);
+    }
+
+    const coll = db.collection(collection);
+    const result = await coll.deleteOne({ _id: oid });
+
+    return jsonResponse({
+      success: result.deletedCount > 0,
+      deletedCount: result.deletedCount,
+    });
+  } catch (err) {
+    console.error("DELETE /api/data error:", err);
+    return jsonResponse({ error: err.message || "Internal server error" }, 500);
+  }
+}

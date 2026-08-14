@@ -1,3 +1,4 @@
+import { getBaseUrl } from "@/lib/getBaseUrl";
 "use client"
 
 // app/about/AboutUsClient.jsx (Client Component)
@@ -41,7 +42,7 @@ const AboutUsClient = ({ initialData, error: serverError }) => {
       const fetchData = async () => {
         try {
           setLoading(true);
-          const response = await fetch('https://restaurant-back-end.vercel.app/api/data');
+          const response = await fetch(`${getBaseUrl()}/api/data`);
           
           if (!response.ok) {
             throw new Error('فشل في تحميل البيانات');

@@ -1,3 +1,4 @@
+import { getBaseUrl } from "@/lib/getBaseUrl";
 // app/contact/page.js (Server Component)
 
 import ContactClient from './_clientServer';
@@ -22,7 +23,7 @@ export const metadata = {
 // Fetch contact data with revalidation
 async function getContactData() {
   try {
-    const response = await fetch('https://restaurant-back-end.vercel.app/api/data', {
+    const response = await fetch(`${getBaseUrl()}/api/data`, {
       next: { 
         revalidate: 86400 // Revalidate every 30 minutes (contact info changes more frequently)
       },

@@ -1,5 +1,9 @@
 // app/laptop/page.js (Server Component)
-import { getBaseUrl } from "@/lib/getBaseUrl";
+function getBaseUrl() {
+  if (typeof window !== "undefined") return "";
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
 import React from 'react';
 import ProductsClient from './_lapClient';
 import BrettyButton from './brettybtn';
@@ -23,7 +27,7 @@ export const metadata = {
 // Server Component - يتم تشغيله على الخادم
 async function fetchProductsData() {
   try {
-    const response = await fetch(`${getBaseUrl()}/api/data`, {
+    const response = await fetch(`${getBaseUrl()}/api/data?collection=laptop`, {
       next: { revalidate: 86000 } // 24 ساعة تقريباً
     });
     
@@ -33,11 +37,11 @@ async function fetchProductsData() {
     
     const apiData = await response.json();
     
-    // استخراج البيانات من المصفوفة laptop
-    if (apiData.laptop && apiData.laptop.length > 0) {
+    // الاستجابة دلوقتي مصفوفة مباشرة (لأن الطلب بقى بـ ?collection=laptop)
+    if (Array.isArray(apiData) && apiData.length > 0) {
       return {
         success: true,
-        data: apiData.laptop[0]
+        data: apiData[0]
       };
     } else {
       throw new Error('هيكل البيانات غير متوقع');

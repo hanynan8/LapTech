@@ -2,7 +2,11 @@
 import { Suspense } from 'react';
 import HomePage from './_clientServer';
 import { Loader } from 'lucide-react';
-import { getBaseUrl } from "@/lib/getBaseUrl";
+function getBaseUrl() {
+  if (typeof window !== "undefined") return "";
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
 
 // ISR Configuration - revalidate every hour (3600 seconds)
 export const revalidate = 86400;

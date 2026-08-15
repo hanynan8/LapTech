@@ -35,32 +35,28 @@ function isRateLimited(ip) {
 }
 
 // ============================================================
-//  AUTH: READ (API key only — data is public menu/footer/navbar info)
+//  AUTH: READ (no API key — data is public menu/footer/navbar/product info)
+//  ملحوظة: شيلنا شرط الـ x-api-key من القراءة لأن الداتا دي أصلاً
+//  عامة (menu/footer/navbar/products) وبتتنادى من client components
+//  كتير جوه المتصفح، ومفيش طريقة تخبي فيها الـ secret key جوه كود
+//  بيشتغل على المتصفح (أي حد فاتح DevTools هيشوفه). الحماية الحقيقية
+//  (session + admin) لسه شغالة زي ما هي على الـ POST/PUT/DELETE.
+//  الـ rate limiting سايبينه شغال كحماية من الإساءة/الـ scraping.
 // ============================================================
 function authenticateRead(request) {
-  if (!API_KEY) {
-    console.error("API_SECRET_KEY is not set!");
-    return { ok: false, status: 500, error: "Server misconfiguration" };
-  }
-
   const ip = getClientIP(request);
   if (isRateLimited(ip)) {
     return { ok: false, status: 429, error: "Too many requests — slow down" };
-  }
-
-  const key = request.headers.get("x-api-key");
-  if (!key || key !== API_KEY) {
-    return { ok: false, status: 401, error: "Unauthorized — invalid or missing API key" };
   }
 
   return { ok: true };
 }
 
 // ============================================================
-//  AUTH: WRITE (API key + logged-in admin session required)
+//  AUTH: WRITE (logged-in admin session required)
 // ============================================================
 async function authenticateWrite(request) {
-  // نفس شروط القراءة الأول (key + rate limit)
+  // نفس شروط القراءة الأول (rate limit)
   const readCheck = authenticateRead(request);
   if (!readCheck.ok) return readCheck;
 

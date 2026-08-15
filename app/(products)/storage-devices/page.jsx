@@ -1,7 +1,11 @@
 // app/storage-devices/page.tsx - Server Component
 import { Suspense } from 'react';
 import StorageClient from './_storageClient';
-import { getBaseUrl } from "@/lib/getBaseUrl";
+function getBaseUrl() {
+  if (typeof window !== "undefined") return "";
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
 
 // Server-side data fetching
 async function getStorageData() {

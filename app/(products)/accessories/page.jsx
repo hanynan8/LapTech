@@ -1,5 +1,10 @@
 // Server Code: app/accessories/page.tsx (No 'use client' - This is a Server Component)
 import AccessoriesClient from './_accessClient'; // Adjust path as needed
+function getBaseUrl() {
+  if (typeof window !== "undefined") return "";
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
 
 // Metadata for SEO
 export const metadata = {
@@ -26,9 +31,10 @@ const transformApiData = (apiData) => {
   let accessoriesData = null;
   let allProducts = [];
 
-  // البحث عن بيانات الاكسسوارات في هيكل API
-  if (apiData && apiData.accessories && Array.isArray(apiData.accessories)) {
-    accessoriesData = apiData.accessories[0]; // أخذ العنصر الأول
+  // البحث عن بيانات الاكسسوارات — الاستجابة دلوقتي مصفوفة مباشرة
+  // (لأن الطلب بقى بـ ?collection=accessories بدل الطلب العام)
+  if (Array.isArray(apiData) && apiData.length > 0) {
+    accessoriesData = apiData[0];
 
     if (
       accessoriesData &&
@@ -204,7 +210,7 @@ export default async function AccessoriesPage() {
 
   try {
     const response = await fetch(
-      '/api/data',{
+      `${getBaseUrl()}/api/data?collection=accessories`,{
         next: { revalidate: 86000 } // 24 ساعة تقريباً
       }
     );

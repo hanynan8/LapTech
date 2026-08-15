@@ -1,11 +1,12 @@
+"use client"
+
+// app/contact/ContactClient.jsx (Client Component)
+
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return `http://localhost:${process.env.PORT || 3000}`;
 }
-"use client"
-
-// app/contact/ContactClient.jsx (Client Component)
 
 import { useState, useEffect } from 'react';
 import { 

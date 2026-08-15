@@ -1,11 +1,12 @@
+"use client"
+
+// app/about/AboutUsClient.jsx (Client Component)
+
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return `http://localhost:${process.env.PORT || 3000}`;
 }
-"use client"
-
-// app/about/AboutUsClient.jsx (Client Component)
 
 import { useState, useEffect } from 'react';
 import { Users, Loader, Target, Award, Heart, Star, ChevronRight, Eye, Lightbulb, Shield, Rocket, Globe, TrendingUp, Laptop, Truck, Package, Play, Check, Clock, MapPin, Phone, Mail, MessageCircle, Calendar, Zap } from 'lucide-react';

@@ -1,6 +1,7 @@
 'use client';
 
 import AddToCartButton from '../../(products)/_addToTheCart'; // Adjust the path based on your project structure
+import { fetchData } from "@/lib/fetchData";
 
 import React, {
   useState,
@@ -205,7 +206,7 @@ const CategorySection = ({ endpoint, apiUrl, initialProducts = [] }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(`${apiUrl}?collection=${endpoint.key}`, {
+      const response = await fetchData(`${apiUrl}?collection=${endpoint.key}`, {
         signal: controller.signal,
         headers: {
           Accept: 'application/json',

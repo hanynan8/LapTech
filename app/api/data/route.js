@@ -1,58 +1,141 @@
 // app/api/data/route.js
-//
-// هدف الملف: يبقى بديل محلي كامل لـ /api/data
-// بحيث المشروع يشتغل بالكامل على قاعدة البيانات المحلية (MONGO_URI) من غير أي اعتماد
-// على أي سيرفر خارجي.
-//
-// الأنماط المدعومة (نفس الأنماط اللي كانت مستخدمة في المشروع مع السيرفر القديم):
-//
-//   GET  /api/data
-//     -> بيرجع كل الـ "collections" الخاصة بالمنتجات في object واحد:
-//        { laptop: [...], component: [...], other: [...], accessories: [...],
-//          printers: [...], monitors: [...], pos: [...], "pc-build": [...],
-//          "storage-devices": [...] }
-//
-//   GET  /api/data?collection=carts
-//     -> بيرجع كل الـ documents في الـ collection ده كـ array مباشرة
-//        (وده المستخدم في السلة/البروفايل/اليوزرز)
-//
-//   GET  /api/data?collection=carts&email=someone@example.com
-//     -> فلترة حسب الإيميل (اختياري، لو محتاجينه في السيرفر بدل الفرونت)
-//
-//   GET  /api/data?collection=laptop&id=123
-//     -> بيدور على _id في الـ collection، ولو مالقاش، بيدور جوا مصفوفة
-//        "products" المتداخلة (nested) جوا الـ documents عن منتج بنفس
-//        الـ id بتاعه (زي ما كان شغال في المنتجات)
-//
-//   GET  /api/data?collection=laptop&category=gaming&limit=12
-//     -> فلترة المنتجات المتداخلة جوا "products" حسب الفئة، مع حد أقصى للعدد
-//
-//   POST /api/data?collection=carts   (body: JSON)
-//     -> إضافة document جديد للـ collection
-//
-//   DELETE /api/data?collection=carts&id=<_id>
-//     -> حذف document بالـ _id بتاعه من الـ collection
-//
-// ملاحظة: لازم يكون عندك متغير البيئة MONGO_URI مضبوط (في .env.local) وبيشاور
-// على نفس قاعدة البيانات اللي كان بيستخدمها الباك إند الخارجي، عشان تلاقي نفس
-// البيانات بالظبط.
 
-import { connectToDatabase } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
+// ✅ NextAuth v5: مفيش getServerSession ولا authOptions خالص.
+// بنستورد دالة auth() جاهزة من ملف الإعداد بتاعك مباشرة.
+import { auth } from "@/app/api/auth/[...nextauth]/auth";
 
-// أسماء الـ collections الخاصة بصفحات المنتجات، دي اللي بترجع لما محدش يحدد "collection"
-const PRODUCT_COLLECTIONS = [
-  "laptop",
-  "component",
-  "other",
-  "accessories",
-  "printers",
-  "monitors",
-  "pos",
-  "pc-build",
-  "storage-devices",
-];
+// ============================================================
+//  SECURITY CONFIG
+// ============================================================
+const API_KEY = process.env.API_SECRET_KEY;
 
+const rateLimitMap = new Map();
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60_000;
+
+function getClientIP(request) {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - entry.start > RATE_WINDOW_MS) {
+    entry.count = 0;
+    entry.start = now;
+  }
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  return entry.count > RATE_LIMIT;
+}
+
+// ============================================================
+//  AUTH: READ (API key only — data is public menu/footer/navbar info)
+// ============================================================
+function authenticateRead(request) {
+  if (!API_KEY) {
+    console.error("API_SECRET_KEY is not set!");
+    return { ok: false, status: 500, error: "Server misconfiguration" };
+  }
+
+  const ip = getClientIP(request);
+  if (isRateLimited(ip)) {
+    return { ok: false, status: 429, error: "Too many requests — slow down" };
+  }
+
+  const key = request.headers.get("x-api-key");
+  if (!key || key !== API_KEY) {
+    return { ok: false, status: 401, error: "Unauthorized — invalid or missing API key" };
+  }
+
+  return { ok: true };
+}
+
+// ============================================================
+//  AUTH: WRITE (API key + logged-in admin session required)
+// ============================================================
+async function authenticateWrite(request) {
+  // نفس شروط القراءة الأول (key + rate limit)
+  const readCheck = authenticateRead(request);
+  if (!readCheck.ok) return readCheck;
+
+  // ✅ NextAuth v5: بنجيب الـ session بنداء auth() مباشرة، مش getServerSession(authOptions)
+  const session = await auth();
+  if (!session || !session.user) {
+    return { ok: false, status: 401, error: "Unauthorized — login required for this action" };
+  }
+
+  // لازم يكون admin (session.user.isAdmin بييجي من next-auth بعد التعديل على callbacks)
+  if (!session.user.isAdmin) {
+    return { ok: false, status: 403, error: "Forbidden — admin access required" };
+  }
+
+  return { ok: true, session };
+}
+
+// ============================================================
+//  MONGO CONNECTION
+// ============================================================
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) console.warn("Warning: MONGO_URI not defined in environment");
+
+if (!globalThis._mongo) globalThis._mongo = { conn: null, promise: null };
+if (!globalThis._mongoModels) globalThis._mongoModels = {};
+
+async function connectToMongo() {
+  if (globalThis._mongo.conn) return globalThis._mongo.conn;
+  if (!MONGO_URI) throw new Error("Please set MONGO_URI environment variable");
+
+  if (!globalThis._mongo.promise) {
+    globalThis._mongo.promise = mongoose.connect(MONGO_URI).then((m) => m);
+  }
+
+  globalThis._mongo.conn = await globalThis._mongo.promise;
+  return globalThis._mongo.conn;
+}
+
+const schema = new mongoose.Schema({}, { strict: false });
+
+function normalizeModelName(name) {
+  return `Model_${String(name).replace(/[^a-zA-Z0-9]/g, "_")}`;
+}
+
+function getModelForCollection(collectionName) {
+  const name = String(collectionName);
+  if (globalThis._mongoModels[name]) return globalThis._mongoModels[name];
+
+  const modelName = normalizeModelName(name);
+  const Model =
+    mongoose.models[modelName] || mongoose.model(modelName, schema, name);
+  globalThis._mongoModels[name] = Model;
+  return Model;
+}
+
+async function listCollections() {
+  await connectToMongo();
+  const cols = await mongoose.connection.db.listCollections().toArray();
+  return cols.map((c) => c.name).filter((n) => !n.startsWith("system."));
+}
+
+// ============================================================
+//  ALLOWLIST — بس الـ collections دي مسموح يتكتب فيها.
+//  عدّلها على حسب أسماء الـ collections الحقيقية عندك.
+//  (لو محتاج تسمح بالكتابة في carts/profile من غير ما يكون المستخدم admin،
+//   لازم تعمل شرط مختلف — راجع الملاحظة تحت الرد).
+// ============================================================
+const WRITABLE_COLLECTIONS = ["Menu", "footer", "navbar", "whatsapp"];
+
+// collections حساسة ممنوع الوصول ليها خالص من الـ route العام (قراءة أو كتابة)
+const RESTRICTED_COLLECTIONS = ["auth"];
+
+// ============================================================
+//  HELPERS
+// ============================================================
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -60,167 +143,183 @@ function jsonResponse(data, status = 200) {
   });
 }
 
-function toObjectIdSafe(id) {
+async function parseBody(request) {
   try {
-    if (!id || !ObjectId.isValid(id)) return null;
-    return new ObjectId(id);
+    return await request.json();
   } catch {
     return null;
   }
 }
 
-// دور جوا مصفوفة "products" المتداخلة داخل documents الـ collection عن عنصر بنفس الـ id
-function findNestedProductById(docs, id) {
-  for (const doc of docs) {
-    if (Array.isArray(doc.products)) {
-      const found = doc.products.find((p) => String(p?.id) === String(id));
-      if (found) return found;
-    }
-  }
-  return null;
+function getSearchParams(request) {
+  const url = new URL(request.url);
+  return {
+    collection: url.searchParams.get("collection"),
+    id: url.searchParams.get("id"),
+  };
 }
 
-// فلترة المنتجات المتداخلة حسب الفئة
-function filterNestedByCategory(docs, category, limit) {
-  let result = [];
-  for (const doc of docs) {
-    if (Array.isArray(doc.products)) {
-      result.push(
-        ...doc.products.filter(
-          (p) => String(p?.category).toLowerCase() === String(category).toLowerCase()
-        )
-      );
-    }
-  }
-  if (limit) {
-    const n = Number(limit);
-    if (!Number.isNaN(n) && n > 0) result = result.slice(0, n);
-  }
-  return result;
-}
-
-/**
- * GET /api/data
- */
+// ============================================================
+//  GET — قراءة بس، محتاج API key
+// ============================================================
 export async function GET(request) {
+  const authCheck = authenticateRead(request);
+  if (!authCheck.ok) return jsonResponse({ error: authCheck.error }, authCheck.status);
+
   try {
-    const db = await connectToDatabase();
-    const url = new URL(request.url);
-    const collection = url.searchParams.get("collection");
-    const id = url.searchParams.get("id");
-    const category = url.searchParams.get("category");
-    const limit = url.searchParams.get("limit");
-    const email = url.searchParams.get("email");
+    await connectToMongo();
+    const { collection, id } = getSearchParams(request);
 
-    // مفيش collection محدد => رجّع كل collections المنتجات مرة واحدة
     if (!collection) {
-      const entries = await Promise.all(
-        PRODUCT_COLLECTIONS.map(async (col) => {
-          const docs = await db.collection(col).find({}).toArray();
-          return [col, docs];
-        })
+      const colNames = (await listCollections()).filter(
+        (name) => !RESTRICTED_COLLECTIONS.includes(name)
       );
-      return jsonResponse(Object.fromEntries(entries));
+      const results = await Promise.all(
+        colNames.map((name) => getModelForCollection(name).find({}))
+      );
+      const payload = colNames.reduce((acc, name, idx) => {
+        acc[name] = results[idx];
+        return acc;
+      }, {});
+      return jsonResponse(payload, 200);
     }
 
-    const coll = db.collection(collection);
+    const colName = String(collection);
 
-    // البحث بالـ id: جرب _id الحقيقي الأول، ولو مش لاقي، دور جوا "products" المتداخلة
+    if (RESTRICTED_COLLECTIONS.includes(colName)) {
+      return jsonResponse({ error: `Access to '${colName}' is not allowed` }, 403);
+    }
+
+    const existingCols = await listCollections();
+    if (!existingCols.includes(colName))
+      return jsonResponse({ error: `Collection '${colName}' not found` }, 404);
+
+    const Model = getModelForCollection(colName);
+
     if (id) {
-      const oid = toObjectIdSafe(id);
-      let doc = null;
-
-      if (oid) {
-        doc = await coll.findOne({ _id: oid });
-      }
-
-      if (doc) return jsonResponse(doc);
-
-      const docs = await coll.find({}).toArray();
-      const nestedProduct = findNestedProductById(docs, id);
-      if (nestedProduct) return jsonResponse(nestedProduct);
-
-      return jsonResponse({ error: "Not found" }, 404);
+      if (!mongoose.Types.ObjectId.isValid(id))
+        return jsonResponse({ error: "Invalid id format" }, 400);
+      const doc = await Model.findById(id);
+      if (!doc) return jsonResponse({ error: "Document not found" }, 404);
+      return jsonResponse(doc, 200);
     }
 
-    // فلترة حسب الفئة (وبالحد الأقصى للعدد لو موجود)
-    if (category) {
-      const docs = await coll.find({}).toArray();
-      return jsonResponse(filterNestedByCategory(docs, category, limit));
-    }
-
-    // جلب كل الـ documents في الـ collection (مع فلترة اختيارية بالإيميل)
-    const filter = email ? { email } : {};
-    const docs = await coll.find(filter).toArray();
-    return jsonResponse(docs);
+    return jsonResponse(await Model.find({}), 200);
   } catch (err) {
-    console.error("GET /api/data error:", err);
-    return jsonResponse({ error: err.message || "Internal server error" }, 500);
+    console.error(err);
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 }
 
-/**
- * POST /api/data?collection=carts
- * بيضيف document جديد للـ collection المحددة
- */
+// ============================================================
+//  POST — كتابة، محتاج admin session
+// ============================================================
 export async function POST(request) {
-  try {
-    const db = await connectToDatabase();
-    const url = new URL(request.url);
-    const collection = url.searchParams.get("collection");
+  const authResult = await authenticateWrite(request);
+  if (!authResult.ok) return jsonResponse({ error: authResult.error }, authResult.status);
 
-    if (!collection) {
-      return jsonResponse({ error: "collection query param is required" }, 400);
+  try {
+    await connectToMongo();
+    const { collection } = getSearchParams(request);
+    if (!collection)
+      return jsonResponse({ error: "Collection is required" }, 400);
+
+    const colName = String(collection);
+    if (!WRITABLE_COLLECTIONS.includes(colName)) {
+      return jsonResponse({ error: `Writing to '${colName}' is not allowed` }, 403);
     }
 
-    const body = await request.json().catch(() => null);
-    if (!body || typeof body !== "object") {
+    const body = await parseBody(request);
+    if (body === null) {
       return jsonResponse({ error: "Invalid or missing JSON body" }, 400);
     }
 
-    const coll = db.collection(collection);
-    const doc = {
-      ...body,
-      createdAt: body.createdAt || new Date().toISOString(),
-    };
+    const Model = getModelForCollection(colName);
+    const created = Array.isArray(body)
+      ? await Model.insertMany(body)
+      : await Model.create(body);
 
-    const result = await coll.insertOne(doc);
-    return jsonResponse({ _id: result.insertedId, ...doc }, 201);
+    return jsonResponse(created, 201);
   } catch (err) {
-    console.error("POST /api/data error:", err);
-    return jsonResponse({ error: err.message || "Internal server error" }, 500);
+    console.error(err);
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 }
 
-/**
- * DELETE /api/data?collection=carts&id=<_id>
- * بيحذف document بالـ _id بتاعه
- */
-export async function DELETE(request) {
+// ============================================================
+//  PUT — كتابة، محتاج admin session
+// ============================================================
+export async function PUT(request) {
+  const authResult = await authenticateWrite(request);
+  if (!authResult.ok) return jsonResponse({ error: authResult.error }, authResult.status);
+
   try {
-    const db = await connectToDatabase();
-    const url = new URL(request.url);
-    const collection = url.searchParams.get("collection");
-    const id = url.searchParams.get("id");
+    await connectToMongo();
+    const { collection, id } = getSearchParams(request);
+    if (!collection)
+      return jsonResponse({ error: "Collection is required" }, 400);
+    if (!id) return jsonResponse({ error: "ID is required for PUT" }, 400);
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return jsonResponse({ error: "Invalid id format" }, 400);
 
-    if (!collection || !id) {
-      return jsonResponse({ error: "collection and id query params are required" }, 400);
+    const colName = String(collection);
+    if (!WRITABLE_COLLECTIONS.includes(colName)) {
+      return jsonResponse({ error: `Writing to '${colName}' is not allowed` }, 403);
     }
 
-    const oid = toObjectIdSafe(id);
-    if (!oid) {
-      return jsonResponse({ error: "Invalid id" }, 400);
+    const existingCols = await listCollections();
+    if (!existingCols.includes(colName))
+      return jsonResponse({ error: "Collection not found" }, 404);
+
+    const body = await parseBody(request);
+    if (body === null) {
+      return jsonResponse({ error: "Invalid or missing JSON body" }, 400);
     }
 
-    const coll = db.collection(collection);
-    const result = await coll.deleteOne({ _id: oid });
+    const updated = await getModelForCollection(colName).findByIdAndUpdate(
+      id,
+      body,
+      { new: true, runValidators: false }
+    );
 
-    return jsonResponse({
-      success: result.deletedCount > 0,
-      deletedCount: result.deletedCount,
-    });
+    if (!updated) return jsonResponse({ error: "Document not found" }, 404);
+    return jsonResponse(updated, 200);
   } catch (err) {
-    console.error("DELETE /api/data error:", err);
-    return jsonResponse({ error: err.message || "Internal server error" }, 500);
+    console.error(err);
+    return jsonResponse({ error: "Internal server error" }, 500);
+  }
+}
+
+// ============================================================
+//  DELETE — كتابة، محتاج admin session
+// ============================================================
+export async function DELETE(request) {
+  const authResult = await authenticateWrite(request);
+  if (!authResult.ok) return jsonResponse({ error: authResult.error }, authResult.status);
+
+  try {
+    await connectToMongo();
+    const { collection, id } = getSearchParams(request);
+    if (!collection)
+      return jsonResponse({ error: "Collection is required" }, 400);
+    if (!id) return jsonResponse({ error: "ID is required for DELETE" }, 400);
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return jsonResponse({ error: "Invalid id format" }, 400);
+
+    const colName = String(collection);
+    if (!WRITABLE_COLLECTIONS.includes(colName)) {
+      return jsonResponse({ error: `Writing to '${colName}' is not allowed` }, 403);
+    }
+
+    const existingCols = await listCollections();
+    if (!existingCols.includes(colName))
+      return jsonResponse({ error: "Collection not found" }, 404);
+
+    const deleted = await getModelForCollection(colName).findByIdAndDelete(id);
+    if (!deleted) return jsonResponse({ error: "Document not found" }, 404);
+    return jsonResponse(deleted, 200);
+  } catch (err) {
+    console.error(err);
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 }

@@ -105,7 +105,7 @@ export default function Navbar({ navbarData }) {
     try {
       if (session) {
         const res = await fetch(
-          '/api/data?collection=carts'
+          'https://restaurant-back-end.vercel.app/api/data?collection=carts'
         );
         if (res.ok) {
           const data = await res.json();

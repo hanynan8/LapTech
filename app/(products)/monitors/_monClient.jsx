@@ -1,1075 +1,1097 @@
-'use client';
-
-import AddToCartButton from '../../(products)/_addToTheCart'; // Adjust the path based on your project structure
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from 'react';
-import {
-  Search,
-  Filter,
-  Star,
-  ShoppingCart,
-  Heart,
-  Eye,
-  ArrowRight,
-  Cpu,
-  HardDrive,
-  MonitorSpeaker,
-  Zap,
-  Fan,
-  MemoryStick,
-  Gamepad2,
-  Wifi,
-  ChevronLeft,
-  ChevronRight,
-  ArrowLeft,
-  Menu,
-  X,
-  Home,
-  Grid3X3,
-} from 'lucide-react';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { Suspense } from 'react';
+import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل HTTP self-fetch
+// لـ /api/data الخاص بنفس السيرفر - الـ self-fetch كان بيعتمد على تخمين
+// رابط السيرفر (getBaseUrl) وكان بيفشل بصمت لو التخمين غلط، وده اللي كان
+// بيوقع كل صفحات التفاصيل على notFound().
+import { getCollectionData } from '@/lib/serverData';
 
-// Mobile Navigation Bar Component مع السلة
-const MobileNavBar = ({ onMenuToggle, isMenuOpen, isVisible, cartCount }) => {
+const COLLECTION = 'monitors';
+
+export const dynamicParams = true;
+
+
+
+
+  // دالة إنشاء الصفحات الثابتة للمنتجات
+export async function generateStaticParams() {
+  try {
+    const result = await getCollectionData(COLLECTION);
+    if (!result.success) return [];
+
+    const data = result.data;
+    let products = [];
+    
+    if (Array.isArray(data)) {
+      products = data.filter(item => item.id);
+      data.forEach(item => {
+        if (item.products && Array.isArray(item.products)) {
+          products = [...products, ...item.products.filter(p => p.id)];
+        }
+      });
+    } else if (data?.products && Array.isArray(data.products)) {
+      products = data.products.filter(product => product.id);
+    }
+    
+    return products.map((product) => ({
+      id: product.id.toString()
+    }));
+    
+  } catch (error) {
+    console.error('خطأ في generateStaticParams:', error);
+    return [];
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+// Server Component للمنتجات المشابهة
+async function RelatedProducts({ product }) {
+  // جلب المنتجات ذات الصلة مع تحسينات الأداء
+  async function fetchRelatedProducts(product) {
+    try {
+      let relatedProducts = [];
+
+      // إذا كان المنتج يحتوي على relatedProducts IDs محددة
+      if (Array.isArray(product?.details?.relatedProducts) && product.details.relatedProducts.length > 0) {
+        const relatedPromises = product.details.relatedProducts.slice(0, 8).map(async (id) => {
+          try {
+            const result = await getCollectionData(COLLECTION, { id });
+            return result.success ? result.data : null;
+          } catch {
+            return null;
+          }
+        });
+        
+        const relatedResults = await Promise.allSettled(relatedPromises);
+        relatedProducts = relatedResults
+          .filter(result => result.status === 'fulfilled' && result.value)
+          .map(result => result.value)
+          .filter(prod => prod && prod.id !== product.id)
+          .slice(0, 8);
+      }
+      
+      // إذا لم نحصل على عدد كافٍ، نجلب منتجات من نفس الفئة
+      if (relatedProducts.length < 4 && product.category) {
+        try {
+          const categoryResult = await getCollectionData(COLLECTION);
+
+          if (categoryResult.success) {
+            const categoryData = categoryResult.data;
+            let categoryProducts = [];
+
+            if (Array.isArray(categoryData) && categoryData.length > 0 && categoryData[0].products) {
+              categoryProducts = categoryData[0].products;
+            } else if (Array.isArray(categoryData)) {
+              categoryProducts = categoryData;
+            }
+
+            const additionalProducts = categoryProducts
+              .filter(prod => prod.category === product.category && prod.id !== product.id)
+              .slice(0, 8 - relatedProducts.length);
+            
+            relatedProducts = [...relatedProducts, ...additionalProducts];
+          }
+        } catch (error) {
+          console.error('خطأ في جلب منتجات الفئة:', error);
+        }
+      }
+      
+      return relatedProducts.slice(0, 8);
+    } catch (error) {
+      console.error('خطأ في جلب المنتجات ذات الصلة:', error);
+      return [];
+    }
+  }
+
+  const relatedProducts = await fetchRelatedProducts(product);
+
+  if (relatedProducts.length === 0) return null;
+
   return (
-    <div
-      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 md:hidden transition-transform duration-300 ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
-      }`}
-    >
-      <div className="flex items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Home className="w-6 h-6 text-purple-600" />
-          <span className="text-lg font-bold text-purple-600">الرئيسية</span>
-        </Link>
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">منتجات مشابهة</h2>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        {relatedProducts.map((prod, index) => (
+          <Link 
+            key={`related-${prod.id}-${index}`} 
+            href={`/monitors/${prod.id}`} 
+            className="bg-gray-50 rounded-2xl p-3 sm:p-4 card-hover border border-gray-200"
 
-        <div className="flex items-center gap-3">
-          {/* السلة */}
-          <Link
-            href="/cart"
-            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <ShoppingCart className="w-6 h-6 text-purple-600" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                {cartCount > 99 ? '99+' : cartCount}
-              </span>
+            <div className="relative mb-3 sm:mb-4">
+              <img 
+                src={prod.image || prod.detailedImages?.[0] || ''} 
+                alt={prod.name} 
+                className="w-full h-32 sm:h-40 object-contain"
+                loading="lazy"
+                decoding="async"
+              />
+              {prod.discount && (
+                <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  -{prod.discount}%
+                </span>
+              )}
+            </div>
+            
+            <h3 className="font-bold text-base sm:text-lg mb-2 text-gray-900 line-clamp-2">
+              {prod.name}
+            </h3>
+            
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg sm:text-xl font-bold text-purple-600">
+                {formatPrice(prod.price)} {prod.currency || 'ج.م'}
+              </div>
+              {prod.rating && (
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400 text-sm">★</span>
+                  <span className="text-sm text-gray-600">{prod.rating}</span>
+                </div>
+              )}
+            </div>
+            
+            {prod.originalPrice && (
+              <div className="text-sm text-gray-500 line-through">
+                {formatPrice(prod.originalPrice)} {prod.currency || 'ج.م'}
+              </div>
             )}
           </Link>
-
-          {/* زر القائمة */}
-          <button
-            onClick={onMenuToggle}
-            className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-300"
-          >
-            {isMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Mobile Menu Component
-const MobileMenu = ({
-  isOpen,
-  onClose,
-  activeCategory,
-  setActiveCategory,
-  categories,
-  iconMap,
-  data,
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-40 md:hidden">
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-      ></div>
-      <div className="fixed top-16 right-0 bottom-0 w-80 bg-white shadow-xl transform transition-transform duration-300">
-        <div className="p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Grid3X3 className="w-5 h-5" />
-            فئات المنتجات
-          </h3>
-          <div className="space-y-3">
-            {data?.categories?.map((category) => {
-              const IconComponent = iconMap[category.icon] || Cpu;
-              const productCount =
-                category.id === 'all'
-                  ? data.products?.length || 0
-                  : data.products?.filter((p) => p.category === category.id)
-                      .length || 0;
-
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => {
-                    setActiveCategory(category.id);
-                    onClose();
-                  }}
-                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-                    activeCategory === category.id
-                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <IconComponent className="w-5 h-5" />
-                    <span className="font-medium">{category.name}</span>
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      activeCategory === category.id
-                        ? 'bg-white/20 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {productCount}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Component Card محسن للموبايل
-const ComponentCard = React.memo(
-  ({ product, favorites, toggleFavorite, index, whatsappNumber }) => {
-    const [isVisible, setIsVisible] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
-    const cardRef = useRef();
-    const { data: session } = useSession(); // إضافة هذا السطر
-    const fallback =
-      'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400';
-    const [currentSrc, setCurrentSrc] = useState(product.image || fallback);
-
-    // باقي الكود كما هو...
-    useEffect(() => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setIsVisible(true);
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        {
-          threshold: 0.1,
-          rootMargin: '100px 0px',
-        }
-      );
-
-      if (cardRef.current) {
-        observer.observe(cardRef.current);
-      }
-
-      return () => {
-        if (cardRef.current) {
-          observer.unobserve(cardRef.current);
-        }
-      };
-    }, []);
-
-    return (
-      <div
-        ref={cardRef}
-        className={`transition-all duration-500 ease-out transform ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        }`}
-        style={{
-          transitionDelay: `${Math.min(index * 50, 300)}ms`,
-        }}
-      >
-        <Link href={`/monitors/${product.id}`} className="group block">
-          <div className="bg-white rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transform group-hover:scale-105 transition-all duration-300 mx-2 sm:mx-0">
-            {/* Product Image */}
-            <div className="relative overflow-hidden bg-gray-100 h-36 sm:h-48">
-              {/* Skeleton loader */}
-              {!imageLoaded && isVisible && (
-                <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
-              )}
-
-              {isVisible && (
-                <Image
-                  src={currentSrc}
-                  alt={product.name || 'منتج'}
-                  fill
-                  className={`object-cover group-hover:scale-110 transition-all duration-700 ${
-                    imageLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  onLoadingComplete={() => setImageLoaded(true)}
-                  onError={() => {
-                    if (currentSrc !== fallback) {
-                      setCurrentSrc(fallback);
-                    }
-                  }}
-                />
-              )}
-
-              {/* Badges */}
-              <div className="absolute top-2 right-2">
-                {product.badge && (
-                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                    {product.badge}
-                  </span>
-                )}
-              </div>
-
-              {product.discount && (
-                <div className="absolute top-2 left-2">
-                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-bounce">
-                    خصم {product.discount}%
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Product Info */}
-            <div className="p-3 sm:p-4">
-              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors duration-300">
-                {product.name || 'اسم المنتج غير متاح'}
-              </h3>
-
-              {/* Rating */}
-              {product.rating && (
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3 h-3 sm:w-4 sm:h-4 transition-colors duration-200 ${
-                        i < Math.floor(product.rating)
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-gray-600 text-xs mr-1">
-                    ({product.rating})
-                  </span>
-                </div>
-              )}
-
-              {/* Specs - مخفية في الموبايل الصغير */}
-              {product.specs && Object.keys(product.specs).length > 0 && (
-                <div className="hidden sm:block space-y-1 text-xs text-gray-600 mb-3">
-                  {Object.entries(product.specs)
-                    .slice(0, 2)
-                    .map(([key, value], idx) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="capitalize">{key}:</span>
-                        <span className="font-medium">{String(value)}</span>
-                      </div>
-                    ))}
-                </div>
-              )}
-
-              {/* Price */}
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  {product.price ? (
-                    <>
-                      <span className="text-lg sm:text-xl font-bold text-purple-600">
-                        {Number(product.price).toLocaleString()}{' '}
-                        {product.currency || 'ج.م'}
-                      </span>
-                      {product.originalPrice && (
-                        <div className="text-xs text-gray-400 line-through">
-                          {Number(product.originalPrice).toLocaleString()}{' '}
-                          {product.currency || 'ج.م'}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-sm font-bold text-gray-500">
-                      السعر غير محدد
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* زر الطلب */}
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                <AddToCartButton product={product}>
-                  اضف الي السلة
-                </AddToCartButton>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </div>
-    );
-  }
-);
-
-// Pagination monitors محسن للموبايل
-const Pagination = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-  totalItems,
-  itemsPerPage,
-}) => {
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = window.innerWidth < 640 ? 5 : 7; // أقل في الموبايل
-
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= Math.min(4, totalPages); i++) pages.push(i);
-        if (totalPages > 4) {
-          pages.push('...');
-          pages.push(totalPages);
-        }
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = Math.max(totalPages - 3, 2); i <= totalPages; i++)
-          pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
-
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-  return (
-    <div className="flex flex-col items-center gap-4 py-6">
-      {/* Results Info */}
-      <div className="text-gray-600 text-xs sm:text-sm">
-        عرض {startItem}-{endItem} من {totalItems} منتج
-      </div>
-
-      {/* Pagination Controls */}
-      <div className="flex items-center gap-1 sm:gap-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="p-1.5 sm:p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-
-        {getPageNumbers().map((page, index) => (
-          <button
-            key={index}
-            onClick={() => typeof page === 'number' && onPageChange(page)}
-            className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all duration-200 text-sm ${
-              page === currentPage
-                ? 'bg-purple-600 text-white shadow-lg'
-                : page === '...'
-                ? 'cursor-default text-gray-400'
-                : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
-            }`}
-            disabled={page === '...'}
-          >
-            {page}
-          </button>
         ))}
-
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="p-1.5 sm:p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
       </div>
-    </div>
+    </section>
   );
-};
+}
 
-// Main Computer Components Client Component
-const ComputerComponentsClient = ({ initialData, error }) => {
-  const [data] = useState(initialData);
-  const [filteredProducts, setFilteredProducts] = useState(
-    initialData?.products || []
-  );
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [favorites, setFavorites] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showMobileNav, setShowMobileNav] = useState(false);
-  const [cartCount, setCartCount] = useState(0); // إضافة عداد السلة
+// Server Component للمواصفات التقنية
+function TechnicalSpecs({ specs }) {
+  if (!specs || Object.keys(specs).length === 0) return null;
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20); // مناسب للموبايل
-
-  // الحصول على رقم الواتساب من البيانات
-  const whatsappNumber = data?.settings?.whatsappNumber || '2001201061216';
-
-  const { data: session } = useSession();
-
-  const fetchCartCount = async () => {
-    try {
-      if (session) {
-        // بدل ما نجيب كل الكارتس بتاعة كل المستخدمين ونفلتر في المتصفح،
-        // بنستخدم endpoint خفيف بيرجع عدد المنتجات بتاع اليوزر الحالي بس
-        // (السيرفر بيحدد الإيميل من الـ session، مش من الطلب).
-        const res = await fetch('/api/cart-count');
-        if (res.ok) {
-          const { count } = await res.json();
-          setCartCount(count || 0);
-        }
-      } else {
-        const localCart = JSON.parse(localStorage.getItem('cart')) || [];
-        const count = localCart.reduce(
-          (sum, item) => sum + (item.quantity || 1),
-          0
-        );
-        setCartCount(count);
-      }
-    } catch (err) {
-      console.error('Error fetching cart count:', err);
-    }
+  const specLabels = {
+    size: 'الحجم',
+    resolution: 'الدقة',
+    refreshRate: 'معدل التحديث',
+    panel: 'نوع الشاشة',
+    responseTime: 'زمن الاستجابة',
+    contrastRatio: 'نسبة التباين',
+    brightness: 'السطوع',
+    viewingAngle: 'زاوية الرؤية',
+    colorGamut: 'نطاق الألوان',
+    colorDepth: 'عمق الألوان',
+    hdr: 'HDR',
+    adaptiveSync: 'التزامن التكيفي',
+    mountVESA: 'تركيب VESA',
+    coating: 'الطلاء',
+    warranty: 'الضمان',
+    powerConsumption: 'استهلاك الطاقة',
+    weight: 'الوزن',
+    curvature: 'انحناء',
+    panelType: 'نوع اللوحة',
+    backlight: 'الإضاءة الخلفية',
+    energyClass: 'فئة الطاقة',
+    ports: 'المنافذ',
+    usbC: 'USB-C',
+    dimensions_mm: 'الأبعاد'
   };
 
-  // تحديث عداد السلة
-  useEffect(() => {
-    fetchCartCount();
-
-    // استماع للأحداث المخصصة للتحديث الفوري
-    const handleCartUpdate = () => {
-      fetchCartCount();
-    };
-    const handleProductAdded = (event) => {
-      const { quantity = 1 } = event.detail || {};
-      setCartCount((prev) => prev + quantity);
-    };
-    const handleProductRemoved = (event) => {
-      const { quantity = 1 } = event.detail || {};
-      setCartCount((prev) => Math.max(0, prev - quantity));
-    };
-
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    window.addEventListener('productAddedToCart', handleProductAdded);
-    window.addEventListener('productRemovedFromCart', handleProductRemoved);
-
-    // استماع لتغييرات localStorage للمستخدمين غير المسجلين
-    const handleStorageChange = (e) => {
-      if (e.key === 'cart' && !session) {
-        fetchCartCount();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-
-    // polling للمستخدمين المسجلين
-    let interval;
-    if (session) {
-      interval = setInterval(fetchCartCount, 10000);
-    }
-
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-      window.removeEventListener('productAddedToCart', handleProductAdded);
-      window.removeEventListener(
-        'productRemovedFromCart',
-        handleProductRemoved
-      );
-      window.removeEventListener('storage', handleStorageChange);
-      if (interval) clearInterval(interval);
-    };
-  }, [session]);
-
-  // تتبع التمرير لإظهار/إخفاء الـ mobile nav
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          const heroSection = document.getElementById('hero-section');
-
-          if (heroSection) {
-            const heroHeight = heroSection.offsetHeight;
-            // إظهار الـ mobile nav عند تجاوز الهيدر الأساسي
-            if (currentScrollY > heroHeight - 100) {
-              setShowMobileNav(true);
-            } else {
-              setShowMobileNav(false);
-            }
-          }
-
-          lastScrollY = currentScrollY;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  // التصفية والبحث مع debouncing
-  const debouncedSearch = useMemo(() => {
-    const timeoutRef = { current: null };
-
-    return (searchTerm, category, sort) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      setIsSearching(true);
-
-      timeoutRef.current = setTimeout(() => {
-        if (!data || !data.products) return;
-
-        let filtered = data.products;
-
-        // فلترة حسب الفئة
-        if (category !== 'all') {
-          filtered = filtered.filter(
-            (product) => product.category === category
-          );
-        }
-
-        // فلترة حسب البحث
-        if (searchTerm.trim()) {
-          const term = searchTerm.toLowerCase();
-          filtered = filtered.filter((product) => {
-            const nameMatch = product.name?.toLowerCase().includes(term);
-            const categoryMatch = product.category
-              ?.toLowerCase()
-              .includes(term);
-            const specsMatch =
-              product.specs &&
-              Object.values(product.specs).some((spec) =>
-                String(spec).toLowerCase().includes(term)
-              );
-            return nameMatch || categoryMatch || specsMatch;
-          });
-        }
-
-        // ترتيب المنتجات
-        switch (sort) {
-          case 'name':
-            filtered.sort((a, b) =>
-              (a.name || '').localeCompare(b.name || '', 'ar')
-            );
-            break;
-          case 'price-low':
-            filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-            break;
-          case 'price-high':
-            filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
-            break;
-          case 'rating':
-            filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-            break;
-          default:
-            break;
-        }
-
-        setFilteredProducts(filtered);
-        setCurrentPage(1);
-        setIsSearching(false);
-      }, 300);
-    };
-  }, [data]);
-
-  useEffect(() => {
-    debouncedSearch(searchQuery, activeCategory, sortBy);
-  }, [searchQuery, activeCategory, sortBy, debouncedSearch]);
-
-  const toggleFavorite = useCallback((productId) => {
-    setFavorites((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-  }, []);
-
-  // حساب المنتجات للصفحة الحالية
-  const currentProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredProducts.slice(startIndex, endIndex);
-  }, [filteredProducts, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const handlePageChange = useCallback(
-    (page) => {
-      if (page >= 1 && page <= totalPages) {
-        setCurrentPage(page);
-        // التنقل إلى أعلى قسم المنتجات
-        document.getElementById('components-section')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      }
-    },
-    [totalPages]
+  const validSpecs = Object.entries(specs).filter(([key, value]) => 
+    value && value !== '—' && value !== 'غير محدد'
   );
 
-  const iconMap = {
-    cpu: Cpu,
-    'hard-drive': HardDrive,
-    'monitor-speaker': MonitorSpeaker,
-    zap: Zap,
-    fan: Fan,
-    'memory-stick': MemoryStick,
-    gamepad2: Gamepad2,
-    wifi: Wifi,
-  };
-
-  if (error) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center bg-gray-100 px-4"
-        dir="rtl"
-      >
-        <div className="text-center">
-          <p className="text-red-500 text-lg sm:text-xl mb-4">
-            خطأ في تحميل البيانات
-          </p>
-          <p className="text-gray-600 mb-4 text-sm sm:text-base">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-300"
-          >
-            إعادة المحاولة
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data || !data.products || data.products.length === 0) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center bg-gray-100 px-4"
-        dir="rtl"
-      >
-        <div className="text-center">
-          <Cpu className="w-20 h-20 sm:w-24 sm:h-24 text-gray-300 mx-auto mb-4 animate-bounce" />
-          <p className="text-lg sm:text-xl text-gray-600 mb-4">
-            لا توجد بيانات منتجات متاحة
-          </p>
-          <p className="text-sm text-gray-500">
-            تم تحميل {data?.products?.length || 0} منتج
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (validSpecs.length === 0) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50" dir="rtl">
-      {/* CSS للتحكم في الأنيميشن */}
-      <style jsx>{`
-        @media (max-width: 768px) {
-          section {
-            top: 64px;
-            transition: top 0.3s ease;
-          }
-        }
-        @media (min-width: 768px) {
-          section {
-            top: 0px;
-            transition: top 0.3s ease;
-          }
-        }
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">المواصفات التقنية الكاملة</h2>
+      
+      <div className="info-grid">
+        {validSpecs.map(([key, value]) => (
+          <div key={key} className="spec-card card-hover">
+            <h4 className="font-bold text-base sm:text-lg text-purple-700 mb-3 border-b border-gray-200 pb-2">
+              {specLabels[key] || key}
+            </h4>
+            <div className="text-gray-700 text-sm sm:text-base">
+              {Array.isArray(value) ? (
+                <ul className="space-y-2">
+                  {value.map((item, idx) => (
+                    <li key={`spec-item-${idx}`} className="flex items-start gap-2">
+                      <span className="w-1 h-1 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                      <span className="leading-relaxed">{typeof item === 'object' ? JSON.stringify(item) : String(item)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : typeof value === 'object' && value !== null ? (
+                <div className="space-y-2">
+                  {Object.entries(value).map(([subKey, subValue]) => (
+                    <div key={subKey} className="bg-gray-50 p-3 rounded-lg">
+                      <span className="font-semibold text-purple-600">{subKey}:</span> {String(subValue)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="leading-relaxed">{String(value)}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
+// Server Component للميزات
+function FeaturesSection({ features }) {
+  if (!features || !Array.isArray(features) || features.length === 0) return null;
+
+  return (
+    <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-8 fade-in">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">المميزات</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {features.map((feature, index) => (
+          <div key={`feature-${index}`} className="bg-gradient-to-br from-blue-50 to-purple-50 p-3 sm:p-4 rounded-xl border border-blue-100 card-hover">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-800 font-medium text-sm sm:text-base">{feature}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// دالة مساعدة منفصلة لتنسيق السعر (خارج الكومبوننت)
+function formatPrice(num) {
+  if (num == null) return '—';
+  try {
+    return new Intl.NumberFormat('ar-EG').format(num);
+  } catch {
+    return String(num);
+  }
+}
+
+// دالة مساعدة لتنسيق التاريخ
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ar-EG', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+
+export default async function ProductDetailsPage({ params }) {
+  
+  const resolvedParams = await params;
+
+  // جلب المنتج حسب id
+  async function fetchProductById(id) {
+    try {
+      const result = await getCollectionData(COLLECTION, { id });
+      return result.success ? result.data : null;
+    } catch (error) {
+      console.error('خطأ في جلب بيانات المنتج:', error);
+      return null;
+    }
+  }
+
+    // جلب المنتج الرئيسي
+  const product = await fetchProductById(resolvedParams.id);
+  if (!product) notFound();
+
+  // استخراج البيانات بشكل صحيح
+  const specs = product.specs || {};
+  const details = product.details || {};
+  const features = product.features || [];
+  const benchmarks = product.benchmarks || {};
+  const includedAccessories = product.includedAccessories || [];
+  const certifications = product.certifications || [];
+  const recommendedUse = product.recommendedUse || [];
+  const isAvailable = product.details?.isAvailable !== false && product.details?.stock > 0;
+
+  // تحديد مصفوفة الصور
+  const images = product.detailedImages && product.detailedImages.length > 0
+    ? product.detailedImages
+    : product.image
+    ? [product.image]
+    : [];
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white" dir="rtl">
+      <style>{`
+        .card-hover {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .fade-in {
+          animation: fadeIn 0.6s ease-out;
+        }
+        
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .lightbox { 
+          display: none; 
+          align-items: center; 
+          justify-content: center; 
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.85);
+          z-index: 1000;
+          padding: 1rem;
+        }
+        .lightbox:target { 
+          display: flex; 
+        }
+        
+        .lightbox-content {
+          position: relative;
+          max-width: 90vw;
+          max-height: 90vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .lightbox img { 
+          max-height: 80vh; 
+          width: auto; 
+          max-width: 100%; 
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .lightbox-close, .lightbox-nav {
+          background: white;
+          color: #333;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+        
+        .lightbox-close:hover, .lightbox-nav:hover {
+          background: #f3f4f6;
+        }
+        
+        .lightbox-close {
+          position: absolute;
+          top: -40px;
+          right: -10px;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lightbox-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 1.5rem;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lightbox-prev { left: 20px; }
+        .lightbox-next { right: 20px; }
+
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1rem;
+        }
+        
+        @media (min-width: 640px) {
+          .info-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
           }
         }
 
-        .animate-fadeIn {
-          animation: fadeIn 0.6s ease-out forwards;
-          opacity: 0;
+        .spec-card {
+          background: white;
+          border-radius: 1rem;
+          padding: 1rem;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (min-width: 640px) {
+          .spec-card {
+            padding: 1.5rem;
+          }
         }
 
+        .availability-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 10px;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 12px;
+        }
+        
+        @media (min-width: 640px) {
+          .availability-badge {
+            padding: 8px 12px;
+            font-size: 14px;
+          }
+        }
+
+        .available {
+          background-color: #dcfce7;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .unavailable {
+          background-color: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+
+        .limited {
+          background-color: #fef3c7;
+          color: #d97706;
+          border: 1px solid #fde68a;
+        }
+        
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-
-        /* تحسين التمرير للموبايل */
-        html {
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        /* تأكد أن المحتوى لا يتداخل مع الـ mobile nav */
-        @media (max-width: 768px) {
-          .mobile-nav-space {
-            padding-top: 0px;
-            transition: padding-top 0.3s ease;
+        
+        @media (max-width: 639px) {
+          .lightbox {
+            padding: 0.5rem;
           }
+          .lightbox-nav {
+            width: 35px;
+            height: 35px;
+            font-size: 1.25rem;
+          }
+          .lightbox-prev { left: 10px; }
+          .lightbox-next { right: 10px; }
         }
       `}</style>
 
-      {/* Mobile Navigation */}
-      <MobileNavBar
-        onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        isMenuOpen={isMobileMenuOpen}
-        isVisible={showMobileNav}
-        cartCount={cartCount}
-      />
-
-      {/* Mobile Menu */}
-      <MobileMenu
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        activeCategory={activeCategory}
-        setActiveCategory={setActiveCategory}
-        categories={data?.categories}
-        iconMap={iconMap}
-        data={data}
-      />
-
-      {/* Hero Section */}
-      <section
-        id="hero-section"
-        className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 sm:py-20"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
-            {data.pageTitle || 'منتجات الكمبيوتر'}
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl opacity-90 max-w-3xl mx-auto">
-            {data.pageSubtitle ||
-              'اختر أفضل قطع الكمبيوتر لتجميع جهازك المثالي'}
-          </p>
-        </div>
-      </section>
-
-      {/* Search and Filter Section - محدث */}
-      <section
-        className={`bg-white/95 backdrop-blur-sm py-4 sm:py-6 shadow-sm sticky z-30 border-b border-gray-200 mobile-nav-space ${
-          showMobileNav ? 'with-nav' : ''
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4">
-            {/* Desktop Layout - صف واحد */}
-            <div className="hidden md:flex items-center justify-between gap-6">
-              <Link href="/" className="flex-shrink-0">
-                <button
-                  title="عودة إلى الرئيسية"
-                  className="p-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors duration-300"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-              </Link>
-
-              {/* Search Bar - يأخذ أكبر مساحة */}
-              <div className="relative flex-1 max-w-2xl">
-                <Search
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 transition-all duration-300 ${
-                    isSearching ? 'animate-spin' : ''
-                  }`}
-                />
-                <input
-                  type="text"
-                  placeholder="ابحث عن منتجات الكمبيوتر..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pr-12 pl-4 py-3 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 focus:shadow-lg"
-                />
-              </div>
-
-              {/* Sort Dropdown - مساحة متوسطة */}
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <Filter className="text-gray-400 w-5 h-5" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-3 rounded-full border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white transition-all duration-300 focus:shadow-lg min-w-48"
-                >
-                  {data.filters && data.filters.sortOptions ? (
-                    data.filters.sortOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="name">الاسم</option>
-                      <option value="price-low">السعر: من الأقل للأعلى</option>
-                      <option value="price-high">السعر: من الأعلى للأقل</option>
-                      <option value="rating">التقييم</option>
-                    </>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        
+        {/* Header Section */}
+        <header className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6 sm:mb-8 fade-in">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-8 p-4 sm:p-8">
+            
+            {/* صور المنتج */}
+            <div className="xl:col-span-2">
+              <div className="xl:sticky xl:top-8">
+                {/* الصورة الرئيسية */}
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 relative">
+                  <img
+                    src={images[0] || product.image || ''}
+                    alt={product.name}
+                    className="w-full h-60 sm:h-80 object-contain"
+                    loading="eager"
+                    decoding="sync"
+                  />
+                  {product.badge && (
+                    <span className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
+                      {product.badge}
+                    </span>
                   )}
-                </select>
-              </div>
+                  {product.discount && (
+                    <span className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-red-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
+                      خصم {product.discount}%
+                    </span>
+                  )}
+                </div>
 
-              {/* Results Count - مساحة صغيرة */}
-              <div className="text-gray-600 font-medium bg-gray-100 px-4 py-3 rounded-full flex-shrink-0">
-                <span
-                  className={`transition-all duration-300 ${
-                    isSearching ? 'opacity-50' : 'opacity-100'
-                  }`}
-                >
-                  {filteredProducts.length} منتج
-                </span>
-              </div>
-
-              {/* إضافة السلة في Desktop */}
-              <Link
-                href="/cart"
-                className="relative p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all duration-300 group flex-shrink-0"
-              >
-                <ShoppingCart
-                  size={22}
-                  className="group-hover:scale-110 transition-transform duration-200"
-                />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -left-2 min-w-[22px] h-[22px] bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-pulse">
-                    {cartCount > 99 ? '99+' : cartCount}
-                  </span>
+                {/* معرض مصغر */}
+                {Array.isArray(images) && images.length > 1 && (
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+                    {images.slice(0, 4).map((src, i) => (
+                      <a key={`gallery-thumb-${i}`} href={`#img-${i}`} className="bg-gray-50 rounded-xl p-2 card-hover relative">
+                        <img 
+                          src={src} 
+                          alt={`${product.name} ${i + 1}`} 
+                          className="w-full h-12 sm:h-16 object-cover rounded-lg"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </a>
+                    ))}
+                  </div>
                 )}
-              </Link>
-            </div>
 
-            {/* Mobile Layout - صف واحد للكل */}
-            <div
-              className="md:hidden"
-              style={{
-                paddingTop: showMobileNav ? '0px' : '0px',
-              }}
-            >
-              <div className="flex items-center gap-2">
-                {/* شريط البحث - أكبر مساحة */}
-                <div className="relative flex-1">
-                  <Search
-                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 ${
-                      isSearching ? 'animate-spin' : ''
-                    }`}
-                  />
-                  <input
-                    type="text"
-                    placeholder="ابحث..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pr-10 pl-3 py-2.5 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-sm"
-                  />
-                </div>
-
-                {/* فلتر التصنيف - متوسط */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-28 px-2 py-2.5 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white transition-all duration-300 text-xs"
-                >
-                  {data.filters && data.filters.sortOptions ? (
-                    data.filters.sortOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="name">الاسم</option>
-                      <option value="price-low">سعر ↑</option>
-                      <option value="price-high">سعر ↓</option>
-                      <option value="rating">تقييم</option>
-                    </>
-                  )}
-                </select>
-
-                {/* عدد المنتجات - أصغر مساحة */}
-                <div className="text-gray-600 text-xs font-medium bg-gray-100 px-2 py-2.5 rounded-xl whitespace-nowrap">
-                  <span
-                    className={`transition-all duration-300 ${
-                      isSearching ? 'opacity-50' : 'opacity-100'
-                    }`}
-                  >
-                    {filteredProducts.length}
-                  </span>
-                </div>
+                {/* معلومات سريعة - مخفية في الموبايل */}
+                <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 hidden xl:block">
+                  <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">الحالة</span>
+                      <span className={`font-semibold ${
+                        isAvailable
+                          ? 'text-green-600'
+                          : product.stockLevel === 'Limited'
+                          ? 'text-yellow-600'
+                          : 'text-red-500'
+                      }`}>
+                        {isAvailable
+                          ? 'متوفر'
+                          : product.stockLevel === 'Limited'
+                          ? 'كمية محدودة'
+                          : 'غير متوفر'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">رقم المنتج</span>
+                      <span className="font-medium text-gray-900">{product.sku || product.id || '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">الفئة</span>
+                      <span className="font-medium text-gray-900">{product.category || '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">الماركة</span>
+                      <span className="font-medium text-gray-900">{product.brand || '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">الموديل</span>
+                      <span className="font-medium text-gray-900">{product.model || '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">سنة الإصدار</span>
+                      <span className="font-medium text-gray-900">{product.modelYear || '—'}</span>
+                    </div>
+                    {specs.warranty && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">الضمان</span>
+                        <span className="font-medium text-gray-900">{specs.warranty}</span>
+                      </div>
+                    )}
+                    {specs.weight && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">الوزن</span>
+                        <span className="font-medium text-gray-900">{specs.weight}</span>
+                      </div>
+                    )}
+                    {product.energyClass && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">فئة الطاقة</span>
+                        <span className="font-medium text-gray-900">{product.energyClass}</span>
+                      </div>
+                    )}
+                  </div>
+                </aside>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Desktop Categories Filter */}
-      {data.categories && data.categories.length > 0 && (
-        <section className="py-4 sm:py-6 bg-gray-50 hidden md:block">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap gap-3 justify-center">
-              {data.categories.map((category) => {
-                const IconComponent = iconMap[category.icon] || Cpu;
-                const productCount =
-                  category.id === 'all'
-                    ? data.products?.length || 0
-                    : data.products?.filter((p) => p.category === category.id)
-                        .length || 0;
-
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`group flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 transform hover:scale-105 ${
-                      activeCategory === category.id
-                        ? `bg-gradient-to-r ${category.color} text-white shadow-lg scale-105`
-                        : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
+            {/* تفاصيل المنتج */}
+            <div className="xl:col-span-3 space-y-4 sm:space-y-6">
+              
+              {/* اسم المنتج والسعر */}
+              <div>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                  <span className="bg-purple-100 text-purple-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                    {product.category}
+                  </span>
+                  {/* حالة التوفر */}
+                  <span
+                    className={`availability-badge ${
+                      isAvailable
+                        ? 'available'
+                        : product.stockLevel === 'Limited'
+                        ? 'limited'
+                        : 'unavailable'
                     }`}
                   >
-                    <IconComponent className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
-                    <span className="font-medium text-sm">{category.name}</span>
-                    {activeCategory === category.id && (
-                      <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">
-                        {productCount}
-                      </span>
+                    {isAvailable ? (
+                      <>
+                        <svg
+                          className="w-3 h-3 sm:w-4 sm:h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        متوفر
+                      </>
+                    ) : product.stockLevel === 'Limited' ? (
+                      <>
+                        <svg
+                          className="w-3 h-3 sm:w-4 sm:h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        كمية محدودة
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-3 h-3 sm:w-4 sm:h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        غير متوفر
+                      </>
                     )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
+                  </span>
+                  {product.rating && (
+                    <div className="flex items-center gap-1">
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={`product-star-${i}`} className="text-xs sm:text-sm">
+                            {i < Math.floor(product.rating) ? '★' : '☆'}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-600">({product.rating})</span>
+                    </div>
+                  )}
+                </div>
 
-      {/* Components Grid */}
-      <section id="components-section" className="py-6 sm:py-8">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          {isSearching ? (
-            <div className="text-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">جاري البحث...</p>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-20 px-4">
-              <Cpu className="w-20 h-20 sm:w-24 sm:h-24 text-gray-300 mx-auto mb-4 animate-bounce" />
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-400 mb-2">
-                لا توجد منتجات
-              </h3>
-              <p className="text-gray-500 text-sm sm:text-base">
-                {searchQuery
-                  ? 'جرب تغيير كلمات البحث'
-                  : 'جرب تغيير معايير الفلترة'}
-              </p>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="mt-4 text-purple-600 hover:text-purple-800 font-medium text-sm sm:text-base"
-                >
-                  مسح البحث
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {currentProducts.map((product, index) => (
-                  <ComponentCard
-                    key={`${product.id}-${currentPage}`}
-                    product={product}
-                    favorites={favorites}
-                    toggleFavorite={toggleFavorite}
-                    index={index}
-                    whatsappNumber={whatsappNumber}
-                  />
+                <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">{product.name}</h1>
+                
+                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="text-2xl sm:text-4xl font-bold text-purple-600">
+                    {formatPrice(product.price)} {product.currency || 'ج.م'}
+                  </div>
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <div className="text-lg sm:text-xl text-gray-500 line-through">
+                      {formatPrice(product.originalPrice)} {product.currency || 'ج.م'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* مواصفات سريعة */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {[
+                  { label: 'الحجم', value: specs.size, color: 'bg-blue-50 text-blue-700' },
+                  { label: 'الدقة', value: specs.resolution, color: 'bg-green-50 text-green-700' },
+                  { label: 'معدل التحديث', value: specs.refreshRate, color: 'bg-purple-50 text-purple-700' },
+                  { label: 'نوع الشاشة', value: specs.panel || specs.panelType, color: 'bg-orange-50 text-orange-700' }
+                ].map((item, i) => (
+                  <div key={`quick-spec-${i}`} className={`p-3 sm:p-4 rounded-xl ${item.color}`}>
+                    <div className="text-xs sm:text-sm font-semibold mb-1">{item.label}</div>
+                    <div className="text-xs font-medium truncate" title={item.value}>
+                      {item.value || '—'}
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  totalItems={filteredProducts.length}
-                  itemsPerPage={itemsPerPage}
-                />
-              )}
-            </>
-          )}
-        </div>
-      </section>
+              {/* أزرار الإجراء */}
+              <div>
+                <AddToCartButton product={product}>اطلب الآن</AddToCartButton>
+              </div>
 
-      {/* CTA Section */}
-      <section className="py-12 sm:py-16 bg-gradient-to-r from-purple-600 to-blue-600 relative overflow-hidden mx-0 rounded-2xl sm:rounded-none mb-4 sm:mb-0">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">
-            تريد شاشة كمبيوتر مثالية؟
-          </h2>
-          <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90">
-            دعنا نساعدك في ايجاد شاشاتك المثالية بأفضل المكونات والأسعار
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <button 
-              onClick={() => {
-                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                  'مرحبا، أريد استشارة مجانية حول الطابعات'
-                )}`;
-                window.open(whatsappUrl, '_blank');
-              }}
-              className="bg-white text-purple-600 px-6 sm:px-8 py-3 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm sm:text-base"
-            >
-              استشارة مجانية
-            </button>
-            <Link href="/monitors">
-              <button className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-full font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
-                عرض جميع الشاشات
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 inline mr-2" />
-              </button>
-            </Link>
+              {/* الوصف */}
+              {product.detailedDescription && (
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">وصف المنتج</h3>
+                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.detailedDescription}</p>
+                </div>
+              )}
+
+              {/* معلومات الشحن والتوصيل */}
+              <div className="bg-green-50 rounded-2xl p-4 sm:p-6 border border-green-200">
+                <h3 className="text-lg sm:text-xl font-bold text-green-800 mb-3 sm:mb-4 flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 sm:h-5 sm:w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  الشحن والتوصيل
+                </h3>
+                <div className="text-green-700 space-y-2 text-sm sm:text-base">
+                  {product.shipping ? (
+                    <>
+                      <p>• {product.shipping.free ? 'شحن مجاني' : `تكلفة الشحن: ${formatPrice(product.shipping.cost)} ج.م`}</p>
+                      <p>• {product.shipping.estimatedDelivery}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>• توصيل سريع خلال 2-5 أيام عمل</p>
+                      <p>• شحن مجاني للطلبات فوق 5000 ج.م</p>
+                    </>
+                  )}
+                  <p>• {product.returnPolicy || 'إرجاع مجاني خلال 14 يوم'}</p>
+                </div>
+              </div>
+              
+              {/* معلومات المنتج - ظاهرة فقط في الموبايل */}
+              <aside className="bg-gray-50 rounded-2xl p-4 sm:p-6 xl:hidden">
+                <h3 className="font-bold text-lg mb-4 text-gray-900">معلومات المنتج</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm">الحالة</span>
+                    <span className={`font-semibold text-sm ${
+                      isAvailable
+                        ? 'text-green-600'
+                        : product.stockLevel === 'Limited'
+                        ? 'text-yellow-600'
+                        : 'text-red-500'
+                    }`}>
+                      {isAvailable
+                        ? 'متوفر'
+                        : product.stockLevel === 'Limited'
+                        ? 'كمية محدودة'
+                        : 'غير متوفر'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm">رقم المنتج</span>
+                    <span className="font-medium text-gray-900 text-sm">{product.sku || product.id || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm">الفئة</span>
+                    <span className="font-medium text-gray-900 text-sm">{product.category || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm">الماركة</span>
+                    <span className="font-medium text-gray-900 text-sm">{product.brand || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm">الموديل</span>
+                    <span className="font-medium text-gray-900 text-sm">{product.model || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm">سنة الإصدار</span>
+                    <span className="font-medium text-gray-900 text-sm">{product.modelYear || '—'}</span>
+                  </div>
+                  {specs.warranty && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm">الضمان</span>
+                      <span className="font-medium text-gray-900 text-sm">{specs.warranty}</span>
+                    </div>
+                  )}
+                  {specs.weight && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm">الوزن</span>
+                      <span className="font-medium text-gray-900 text-sm">{specs.weight}</span>
+                    </div>
+                  )}
+                  {product.energyClass && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm">فئة الطاقة</span>
+                      <span className="font-medium text-gray-900 text-sm">{product.energyClass}</span>
+                    </div>
+                  )}
+                </div>
+              </aside>
+            </div>
+          </div>
+        </header>
+
+        {/* المواصفات التقنية */}
+        <TechnicalSpecs specs={specs} />
+
+        {/* الميزات */}
+        <FeaturesSection features={features} />
+
+        {/* معايير الأداء */}
+        {benchmarks && Object.keys(benchmarks).length > 0 && (
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">معايير الأداء</h2>
+            <div className="info-grid">
+              {Object.entries(benchmarks).map(([key, value]) => (
+                <div key={key} className="spec-card card-hover bg-red-50">
+                  <h4 className="font-bold text-base sm:text-lg text-red-700 mb-3 border-b border-red-200 pb-2">
+                    {key}
+                  </h4>
+                  <div className="text-red-800 text-sm sm:text-base">
+                    {Array.isArray(value) ? (
+                      <ul className="space-y-2">
+                        {value.map((item, idx) => (
+                          <li key={`benchmark-item-${idx}`} className="flex items-start gap-2">
+                            <span className="w-1 h-1 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                            <span className="leading-relaxed">{typeof item === 'object' ? JSON.stringify(item) : String(item)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof value === 'object' && value !== null ? (
+                      <div className="space-y-2">
+                        {Object.entries(value).map(([subKey, subValue]) => (
+                          <div key={subKey} className="bg-red-100 p-3 rounded-lg">
+                            <span className="font-semibold text-red-600">{subKey}:</span> {String(subValue)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="leading-relaxed">{String(value)}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* الملحقات المرفقة */}
+        {includedAccessories && includedAccessories.length > 0 && (
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">الملحقات المرفقة</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {includedAccessories.map((accessory, index) => (
+                <div key={`accessory-${index}`} className="bg-orange-50 p-3 sm:p-4 rounded-xl border border-orange-100 card-hover">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                    <span className="text-orange-800 font-medium text-sm sm:text-base">{accessory}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* الشهادات والمعايير */}
+        {certifications && certifications.length > 0 && (
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">الشهادات والمعايير</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {certifications.map((cert, index) => (
+                <div key={`cert-${index}`} className="bg-green-50 p-3 sm:p-4 rounded-xl border border-green-100 card-hover">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <span className="text-green-800 font-medium text-sm sm:text-base">{cert}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* الاستخدام الموصى به */}
+        {recommendedUse && recommendedUse.length > 0 && (
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">الاستخدام الموصى به</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {recommendedUse.map((use, index) => (
+                <div key={`use-${index}`} className="bg-yellow-50 p-3 sm:p-4 rounded-xl border border-yellow-100 card-hover">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
+                    <span className="text-yellow-800 font-medium text-sm sm:text-base">{use}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* الأبعاد المادية */}
+        {specs.dimensions_mm && (
+          <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">الأبعاد المادية</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {specs.dimensions_mm.height && (
+                <div className="bg-violet-50 p-4 sm:p-6 rounded-2xl border border-violet-100">
+                  <h4 className="text-base sm:text-lg font-bold text-violet-700 mb-2">الارتفاع</h4>
+                  <p className="text-xl sm:text-2xl font-bold text-violet-800">{specs.dimensions_mm.height} مم</p>
+                </div>
+              )}
+              {specs.dimensions_mm.width && (
+                <div className="bg-violet-50 p-4 sm:p-6 rounded-2xl border border-violet-100">
+                  <h4 className="text-base sm:text-lg font-bold text-violet-700 mb-2">العرض</h4>
+                  <p className="text-xl sm:text-2xl font-bold text-violet-800">{specs.dimensions_mm.width} مم</p>
+                </div>
+              )}
+              {specs.dimensions_mm.depth && (
+                <div className="bg-violet-50 p-4 sm:p-6 rounded-2xl border border-violet-100">
+                  <h4 className="text-base sm:text-lg font-bold text-violet-700 mb-2">العمق</h4>
+                  <p className="text-xl sm:text-2xl font-bold text-violet-800">{specs.dimensions_mm.depth} مم</p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* معلومات إضافية */}
+        <section className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">معلومات إضافية</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {product.brand && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الماركة</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.brand}</div>
+              </div>
+            )}
+            {product.model && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">الموديل</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.model}</div>
+              </div>
+            )}
+            {product.modelYear && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">سنة الإصدار</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.modelYear}</div>
+              </div>
+            )}
+            {product.sku && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">رقم المنتج</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.sku}</div>
+              </div>
+            )}
+            {product.energyClass && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">فئة الطاقة</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.energyClass}</div>
+              </div>
+            )}
+            {product.stockLevel && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">مستوى المخزون</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">
+                  {product.stockLevel === 'In Stock' ? 'متوفر' :
+                   product.stockLevel === 'Limited' ? 'كمية محدودة' :
+                   product.stockLevel === 'Good' ? 'متوفر بكثرة' :
+                   product.stockLevel === 'Medium' ? 'متوسط' : product.stockLevel}
+                </div>
+              </div>
+            )}
+            {product.seller?.name && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">البائع</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.seller.name}</div>
+              </div>
+            )}
+            {product.performanceScore && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">نقاط الأداء</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{product.performanceScore}/100</div>
+              </div>
+            )}
+            {specs.usbC && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">USB-C</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">
+                  {specs.usbC.supportsDisplay ? 'يدعم العرض' : 'لا يدعم العرض'}
+                  {specs.usbC.pdWatts && ` - شحن ${specs.usbC.pdWatts}W`}
+                </div>
+              </div>
+            )}
+            {specs.releaseDate && (
+              <div className="bg-indigo-50 p-3 sm:p-4 rounded-xl border border-indigo-100">
+                <div className="text-xs sm:text-sm font-medium text-indigo-600 mb-1">تاريخ الإصدار</div>
+                <div className="font-semibold text-indigo-800 text-sm sm:text-base">{formatDate(specs.releaseDate)}</div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* منتجات ذات صلة مع Suspense لتحسين الأداء */}
+        <Suspense fallback={
+          <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8 fade-in">
+            <div className="text-center">
+              <div className="animate-pulse">
+                <div className="h-6 sm:h-8 bg-gray-200 rounded-lg w-1/3 mx-auto mb-6 sm:mb-8"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={`skeleton-${i}`} className="bg-gray-50 rounded-2xl p-3 sm:p-4 border border-gray-200">
+                      <div className="bg-gray-200 h-32 sm:h-40 rounded-xl mb-3 sm:mb-4"></div>
+                      <div className="h-3 sm:h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        }>
+          <RelatedProducts product={product} />
+        </Suspense>
+      </div>
+
+      {/* معرض الصور */}
+      {Array.isArray(images) && images.map((src, i) => (
+        <div key={`lightbox-img-${i}`} id={`img-${i}`} className="lightbox">
+          <a href="#" className="absolute inset-0" aria-label="إغلاق"></a>
+          
+          <div className="lightbox-content">
+            {i > 0 && (
+              <a href={`#img-${i-1}`} className="lightbox-nav lightbox-prev" aria-label="الصورة السابقة">❮</a>
+            )}
+            
+            <img 
+              src={src} 
+              alt={`${product.name} ${i + 1}`} 
+              className="max-h-80vh w-auto max-w-full rounded-lg shadow-lg"
+              loading="lazy"
+              decoding="async"
+            />
+            
+            {i < images.length - 1 && (
+              <a href={`#img-${i+1}`} className="lightbox-nav lightbox-next" aria-label="الصورة التالية">❯</a>
+            )}
+            
+            <a href="#" className="lightbox-close" aria-label="إغلاق">✕</a>
           </div>
         </div>
-      </section>
-
-      {/* Mobile Bottom Spacing */}
-      <div className="h-4 md:hidden"></div>
-    </div>
+      ))}
+    </main>
   );
-};
-
-export default ComputerComponentsClient;
+}

@@ -2,28 +2,23 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل HTTP self-fetch
+// لـ /api/data الخاص بنفس السيرفر - الـ self-fetch كان بيعتمد على تخمين
+// رابط السيرفر (getBaseUrl) وكان بيفشل بصمت لو التخمين غلط، وده اللي كان
+// بيوقع كل صفحات التفاصيل على notFound().
+import { getCollectionData } from '@/lib/serverData';
 
+const COLLECTION = 'pos';
 
 export const dynamicParams = true;
 
 // دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
-    const res = await fetch(
-      `${getBaseUrl()}/api/data?collection=pos`,
-      {
-        next: { revalidate: false },
-      }
-    );
+    const result = await getCollectionData(COLLECTION);
+    if (!result.success) return [];
 
-    if (!res.ok) return [];
-
-    const data = await res.json();
+    const data = result.data;
     let products = [];
 
     if (Array.isArray(data)) {
@@ -33,7 +28,7 @@ export async function generateStaticParams() {
           products = [...products, ...item.products.filter((p) => p.id)];
         }
       });
-    } else if (data.products && Array.isArray(data.products)) {
+    } else if (data?.products && Array.isArray(data.products)) {
       products = data.products.filter((product) => product.id);
     }
 
@@ -51,15 +46,18 @@ async function RelatedProducts({ product }) {
   // جلب مجموعة منتجات حسب فئة (fallback)
   async function fetchByCategory(category, limit = 12) {
     try {
-      const res = await fetch(
-        `${getBaseUrl()}/api/data?collection=pos&category=${encodeURIComponent(
-          category
-        )}&limit=${limit}`,
-        { next: { revalidate: 86000 } }
-      );
-      if (!res.ok) return [];
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
+      const result = await getCollectionData(COLLECTION);
+      if (!result.success) return [];
+
+      const data = result.data;
+      let products = [];
+      if (Array.isArray(data) && data.length > 0 && data[0].products) {
+        products = data[0].products;
+      } else if (Array.isArray(data)) {
+        products = data;
+      }
+
+      return products.filter((p) => p && p.category === category).slice(0, limit);
     } catch (e) {
       return [];
     }
@@ -426,13 +424,8 @@ export default async function ProductDetailsPage({ params }) {
 
   // جلب المنتج حسب id
   async function fetchProductById(id) {
-    const res = await fetch(
-      `${getBaseUrl()}/api/data?collection=pos&id=${id}`,
-      { next: { revalidate: 86000 } }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data) && data.length > 0 ? data[0] : data || null;
+    const result = await getCollectionData(COLLECTION, { id });
+    return result.success ? result.data : null;
   }
 
   // جلب المنتج الرئيسي

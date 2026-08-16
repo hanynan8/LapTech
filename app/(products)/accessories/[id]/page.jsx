@@ -3,27 +3,23 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل HTTP self-fetch
+// لـ /api/data الخاص بنفس السيرفر - الـ self-fetch كان بيعتمد على تخمين
+// رابط السيرفر (getBaseUrl) وكان بيفشل بصمت لو التخمين غلط، وده اللي كان
+// بيوقع كل صفحات التفاصيل على notFound().
+import { getCollectionData } from '@/lib/serverData';
+
+const COLLECTION = 'accessories';
 
 export const dynamicParams = true;
 
 // دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
-    const res = await fetch(
-      `${getBaseUrl()}/api/data?collection=accessories`,
-      {
-        next: { revalidate: false },
-      }
-    );
+    const result = await getCollectionData(COLLECTION);
+    if (!result.success) return [];
 
-    if (!res.ok) return [];
-
-    const data = await res.json();
+    const data = result.data;
     let products = [];
 
     if (Array.isArray(data)) {
@@ -33,7 +29,7 @@ export async function generateStaticParams() {
           products = [...products, ...item.products.filter((p) => p.id)];
         }
       });
-    } else if (data.products && Array.isArray(data.products)) {
+    } else if (data?.products && Array.isArray(data.products)) {
       products = data.products.filter((product) => product.id);
     }
 
@@ -60,16 +56,8 @@ async function RelatedProducts({ product }) {
           .slice(0, 8)
           .map(async (id) => {
             try {
-              const res = await fetch(
-                `${getBaseUrl()}/api/data?collection=accessories&id=${id}`,
-                {
-                  next: { revalidate: 86000 },
-                  signal: AbortSignal.timeout(5000),
-                }
-              );
-              if (!res.ok) return null;
-              const data = await res.json();
-              return Array.isArray(data) && data.length > 0 ? data[0] : data;
+              const result = await getCollectionData(COLLECTION, { id });
+              return result.success ? result.data : null;
             } catch {
               return null;
             }
@@ -85,16 +73,10 @@ async function RelatedProducts({ product }) {
 
       if (relatedProducts.length < 4 && product.category) {
         try {
-          const categoryRes = await fetch(
-            `${getBaseUrl()}/api/data?collection=accessories`,
-            {
-              next: { revalidate: 1800 },
-              signal: AbortSignal.timeout(5000),
-            }
-          );
+          const categoryResult = await getCollectionData(COLLECTION);
 
-          if (categoryRes.ok) {
-            const categoryData = await categoryRes.json();
+          if (categoryResult.success) {
+            const categoryData = categoryResult.data;
             let categoryProducts = [];
 
             if (
@@ -395,20 +377,8 @@ function formatDate(dateStr) {
 // دالة جلب البيانات من API المحسّنة
 async function fetchAccessoriesData() {
   try {
-    const res = await fetch(
-      `${getBaseUrl()}/api/data?collection=accessories`,
-      {
-        next: { revalidate: 3600 },
-        signal: AbortSignal.timeout(10000),
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-
-    const data = await res.json();
-    return data;
+    const result = await getCollectionData(COLLECTION);
+    return result.success ? result.data : null;
   } catch (error) {
     console.error('خطأ في جلب بيانات الإكسسوارات:', error);
     return null;

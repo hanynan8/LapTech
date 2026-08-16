@@ -2,12 +2,13 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل HTTP self-fetch
+// لـ /api/data الخاص بنفس السيرفر - الـ self-fetch كان بيعتمد على تخمين
+// رابط السيرفر (getBaseUrl) وكان بيفشل بصمت لو التخمين غلط، وده اللي كان
+// بيوقع كل صفحات التفاصيل على notFound().
+import { getCollectionData } from '@/lib/serverData';
 
+const COLLECTION = 'laptop';
 
 export const dynamicParams = true;
 
@@ -15,13 +16,10 @@ export const dynamicParams = true;
   // دالة إنشاء الصفحات الثابتة للمنتجات
 export async function generateStaticParams() {
   try {
-    const res = await fetch(`${getBaseUrl()}/api/data?collection=laptop`, {
-      next: { revalidate: false }
-    });
-    
-    if (!res.ok) return [];
-    
-    const data = await res.json();
+    const result = await getCollectionData(COLLECTION);
+    if (!result.success) return [];
+
+    const data = result.data;
     let products = [];
     
     if (Array.isArray(data)) {
@@ -31,7 +29,7 @@ export async function generateStaticParams() {
           products = [...products, ...item.products.filter(p => p.id)];
         }
       });
-    } else if (data.products && Array.isArray(data.products)) {
+    } else if (data?.products && Array.isArray(data.products)) {
       products = data.products.filter(product => product.id);
     }
     
@@ -53,23 +51,14 @@ async function RelatedProducts({ laptop }) {
   // جلب المنتجات ذات الصلة مع تحسينات الأداء
   async function fetchRelatedProducts(laptop) {
     try {
-      const promises = [];
       let relatedProducts = [];
 
       // إذا كان المنتج يحتوي على relatedProducts IDs محددة
       if (Array.isArray(laptop?.details?.relatedProducts) && laptop.details.relatedProducts.length > 0) {
         const relatedPromises = laptop.details.relatedProducts.slice(0, 8).map(async (id) => {
           try {
-            const res = await fetch(
-              `${getBaseUrl()}/api/data?collection=laptop&id=${id}`,
-              { 
-                next: { revalidate: 86000 }, // تحسين مدة التخزين المؤقت
-                signal: AbortSignal.timeout(5000) // إضافة timeout
-              }
-            );
-            if (!res.ok) return null;
-            const data = await res.json();
-            return Array.isArray(data) && data.length > 0 ? data[0] : data;
+            const result = await getCollectionData(COLLECTION, { id });
+            return result.success ? result.data : null;
           } catch {
             return null;
           }
@@ -86,26 +75,20 @@ async function RelatedProducts({ laptop }) {
       // إذا لم نحصل على عدد كافٍ، نجلب منتجات من نفس الفئة
       if (relatedProducts.length < 4 && laptop.category) {
         try {
-          const categoryRes = await fetch(
-            `${getBaseUrl()}/api/data?collection=laptop&category=${encodeURIComponent(laptop.category)}&limit=12`,
-            { 
-              next: { revalidate: 1800 }, // تقليل مدة التخزين المؤقت للفئات
-              signal: AbortSignal.timeout(5000)
-            }
-          );
-          
-          if (categoryRes.ok) {
-            const categoryData = await categoryRes.json();
+          const categoryResult = await getCollectionData(COLLECTION);
+
+          if (categoryResult.success) {
+            const categoryData = categoryResult.data;
             let categoryProducts = [];
-            
+
             if (Array.isArray(categoryData) && categoryData.length > 0 && categoryData[0].products) {
               categoryProducts = categoryData[0].products;
             } else if (Array.isArray(categoryData)) {
               categoryProducts = categoryData;
             }
-            
+
             const additionalProducts = categoryProducts
-              .filter(product => product.id !== laptop.id)
+              .filter(product => product.category === laptop.category && product.id !== laptop.id)
               .slice(0, 8 - relatedProducts.length);
             
             relatedProducts = [...relatedProducts, ...additionalProducts];
@@ -307,18 +290,8 @@ export default async function ProductDetailsPage({ params }) {
   // جلب المنتج الرئيسي مع تحسينات
   async function fetchLaptopById(id) {
     try {
-      const res = await fetch(
-        `${getBaseUrl()}/api/data?collection=laptop&id=${id}`,
-        { 
-          next: { revalidate: 3600 }, // تحسين مدة التخزين المؤقت
-          signal: AbortSignal.timeout(8000) // timeout أطول للبيانات المهمة
-        }
-      );
-      
-      if (!res.ok) return null;
-      
-      const data = await res.json();
-      return Array.isArray(data) && data.length > 0 ? data[0] : data || null;
+      const result = await getCollectionData(COLLECTION, { id });
+      return result.success ? result.data : null;
     } catch (error) {
       console.error('خطأ في جلب بيانات المنتج:', error);
       return null;

@@ -8,6 +8,7 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -38,6 +39,7 @@ export const authOptions = {
         // "loginType" بيحدد إيه نوع اللوجن: "admin" أو "customer"
         loginType:     { label: "Login Type",     type: "text" },
         password:      { label: "Password",       type: "password" },
+        email:         { label: "Email",          type: "text" },
         name:          { label: "Name",           type: "text" },
         phone:         { label: "Phone",          type: "text" },
         address:       { label: "Address",        type: "text" },
@@ -45,15 +47,10 @@ export const authOptions = {
       },
 
       async authorize(credentials) {
-        console.log('🔐 credentials:', JSON.stringify(credentials));
         try {
           await connectToMongo();
           const AuthModel = getAuthModel();
-    const allDocs = await AuthModel.find({});
-    console.log('📦 All auth docs:', JSON.stringify(allDocs));
-    
-      const adminDoc = await AuthModel.findOne({ pass: credentials.password });
-      console.log('👤 Admin doc found:', JSON.stringify(adminDoc));
+
           // ============================================================
           //  Admin login — loginType === "admin"
           //  الأدمن بيبعت password فقط
@@ -75,8 +72,42 @@ export const authOptions = {
           }
 
           // ============================================================
-          //  Customer login — loginType === "customer" (أو مش محدد)
-          //  العميل بيبعت name فقط
+          //  Customer login بالإيميل + الباسورد
+          //  ده الفورم الأساسي المستخدم دلوقتي في app/(auth)/login/page.jsx
+          //  ولازم يتوافق مع الحساب اللي بيتعمل في POST /api/auth/register
+          // ============================================================
+          if (credentials?.email) {
+            if (!credentials?.password) return null;
+
+            const escapedEmail = credentials.email
+              .trim()
+              .toLowerCase()
+              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            const user = await AuthModel.findOne({
+              email: { $regex: `^${escapedEmail}$`, $options: 'i' },
+            });
+
+            // مفيش حساب بالإيميل ده، أو الحساب ده أدمن (مالوش password مشفر)
+            if (!user || !user.password) return null;
+
+            const isValid = await bcrypt.compare(credentials.password, user.password);
+            if (!isValid) return null;
+
+            return {
+              id:            user._id?.toString(),
+              name:          user.name,
+              email:         user.email,
+              phone:         user.phone         || null,
+              address:       user.address       || null,
+              paymentMethod: user.paymentMethod || 'cash',
+              isAdmin:       false,
+            };
+          }
+
+          // ============================================================
+          //  Customer login بالاسم بس (للتوافق مع أي حسابات قديمة اتسجلت
+          //  قبل ما يتضاف الإيميل/الباسورد للفورم)
           // ============================================================
           if (!credentials?.name) return null;
 
@@ -124,6 +155,7 @@ export const authOptions = {
       if (user) {
         token.id            = user.id;
         token.name          = user.name;
+        token.email         = user.email;
         token.phone         = user.phone;
         token.address       = user.address;
         token.paymentMethod = user.paymentMethod;
@@ -136,6 +168,7 @@ export const authOptions = {
       if (token && session.user) {
         session.user.id            = token.id;
         session.user.name          = token.name;
+        session.user.email         = token.email;
         session.user.phone         = token.phone;
         session.user.address       = token.address;
         session.user.paymentMethod = token.paymentMethod;

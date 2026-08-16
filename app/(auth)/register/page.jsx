@@ -72,7 +72,7 @@ export default function CustomerRegister({ logoGradient = 'from-purple-600 to-bl
     setLoading(true);
     try {
       // التحقق من وجود المستخدم
-      const resUserExists = await fetch("api/auth/userExists", {
+      const resUserExists = await fetch("api/account/exists", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +112,7 @@ export default function CustomerRegister({ logoGradient = 'from-purple-600 to-bl
       };
 
       // إرسال البيانات للسيرفر
-      const res = await fetch("api/auth/register", {
+      const res = await fetch("api/account/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

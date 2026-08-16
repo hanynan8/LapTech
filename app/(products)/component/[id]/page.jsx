@@ -117,7 +117,7 @@ async function RelatedProducts({ component }) {
             key={`related-${product.id}-${index}`} 
             href={`/component/${product.id}`} 
             className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
-            prefetch={false} // تحسين الأداء
+
           >
             <div className="relative mb-4">
               <img 

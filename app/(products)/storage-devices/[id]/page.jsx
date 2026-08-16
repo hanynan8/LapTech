@@ -169,7 +169,7 @@ async function RelatedProducts({ product }) {
             key={`related-${relatedProduct.id}-${index}`}
             href={`/storage/${relatedProduct.id}`}
             className="bg-gray-50 rounded-2xl p-4 card-hover border border-gray-200"
-            prefetch={false}
+
           >
             <div className="relative mb-4">
               <img

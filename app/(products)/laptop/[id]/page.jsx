@@ -119,7 +119,7 @@ async function RelatedProducts({ laptop }) {
             key={`related-${product.id}-${index}`} 
             href={`/laptop/${product.id}`} 
             className="bg-gray-50 rounded-2xl p-3 md:p-4 card-hover border border-gray-200"
-            prefetch={false} // تحسين الأداء
+
           >
             <div className="relative mb-3 md:mb-4">
               <img 

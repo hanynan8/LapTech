@@ -374,40 +374,16 @@ function formatDate(dateStr) {
   }
 }
 
-// دالة جلب البيانات من API المحسّنة
-async function fetchAccessoriesData() {
+// دالة جلب المنتج مباشرة بالـ id (بتستفيد من الكاش المشترك في
+// lib/serverData.js بدل ما تجيب كل الاكسسوارات وتفلترها في الصفحة)
+async function fetchAccessoryById(id) {
   try {
-    const result = await getCollectionData(COLLECTION);
+    const result = await getCollectionData(COLLECTION, { id });
     return result.success ? result.data : null;
   } catch (error) {
-    console.error('خطأ في جلب بيانات الإكسسوارات:', error);
+    console.error('خطأ في جلب بيانات المنتج:', error);
     return null;
   }
-}
-
-// دالة البحث عن منتج بالـ ID المحسّنة
-function findProductById(data, id) {
-  if (!data) return null;
-
-  const numericId = Number(id);
-
-  if (Array.isArray(data)) {
-    const product = data.find((product) => product.id === numericId);
-    if (product) return product;
-
-    for (const item of data) {
-      if (item.products && Array.isArray(item.products)) {
-        const product = item.products.find((p) => p.id === numericId);
-        if (product) return product;
-      }
-    }
-  }
-
-  if (data.products && Array.isArray(data.products)) {
-    return data.products.find((product) => product.id === numericId);
-  }
-
-  return null;
 }
 
 // دالة معلومات المنتج الإضافية
@@ -468,10 +444,7 @@ function ProductAdditionalInfo({ product, details }) {
 export default async function ProductDetailsPage({ params }) {
   const resolvedParams = await params;
 
-  const accessoriesData = await fetchAccessoriesData();
-  if (!accessoriesData) notFound();
-
-  const product = findProductById(accessoriesData, resolvedParams.id);
+  const product = await fetchAccessoryById(resolvedParams.id);
   if (!product) notFound();
 
   const specs = product.details?.detailedSpecs || product.specs || {};

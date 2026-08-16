@@ -1,67 +1,39 @@
 import Footer from './_footClient';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل ما الفوتر - اللي
+// بيترندر مع كل صفحة في الموقع بدون استثناء - يعمل self-fetch HTTP لـ
+// /api/data من غير تحديد collection. ده كان معناه إن كل نقلة صفحة في
+// الموقع كله كانت بتجيب قاعدة البيانات كاملة (كل المنتجات في كل الفئات)
+// بس عشان يعرض نص الفوتر. دلوقتي بيقرأ الـ footer collection بس مباشرة.
+import { getCollectionData } from '@/lib/serverData';
 
 // ISR revalidation period (in seconds) for the page
 export const revalidate = 86400;
 
-// Fetch footer data from API
+const FALLBACK_FOOTER_DATA = {
+  company: {
+    name: "اسم الشركة",
+    subtitle: "",
+    description: "",
+    year: new Date().getFullYear()
+  },
+  socialLinks: [],
+  sections: [],
+  bottomLinks: []
+};
+
+// Fetch footer data directly from the DB (shared cache with navbar/pages)
 async function fetchFooterData() {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const result = await getCollectionData('footer');
+    if (!result.success) return FALLBACK_FOOTER_DATA;
 
-    const res = await fetch(`${getBaseUrl()}/api/data`, {
-      signal: controller.signal,
-      next: { revalidate: 86400 }, // Revalidate API response every 3600 seconds
-    });
+    const data = result.data;
+    const footerData = Array.isArray(data) ? data[0] : data;
 
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    const json = await res.json();
-    const footerData = Array.isArray(json?.footer) ? json.footer[0] : (json?.footer ?? json);
-
-    if (footerData) {
-      return footerData;
-    }
-
-    // Fallback if no footer data
-    return {
-      company: {
-        name: "اسم الشركة",
-        subtitle: "",
-        description: "",
-        year: new Date().getFullYear()
-      },
-      socialLinks: [],
-      sections: [],
-      bottomLinks: []
-    };
+    return footerData || FALLBACK_FOOTER_DATA;
   } catch (err) {
-    if (err.name === 'AbortError') {
-      console.error('Fetch timed out');
-    } else {
-      console.error('Error fetching footer data:', err);
-    }
-    // Return fallback data on error
-    return {
-      company: {
-        name: "اسم الشركة",
-        subtitle: "",
-        description: "",
-        year: new Date().getFullYear()
-      },
-      socialLinks: [],
-      sections: [],
-      bottomLinks: []
-    };
+    console.error('Error fetching footer data:', err);
+    return FALLBACK_FOOTER_DATA;
   }
 }
 

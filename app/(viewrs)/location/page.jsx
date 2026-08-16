@@ -1,9 +1,8 @@
 import LocationPageClient from './_clientServer';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل self-fetch لـ
+// /api/data من غير collection، اللي كان بيجيب قاعدة البيانات كاملة بس
+// عشان ياخد بيانات صفحة "موقعنا" الصغيرة.
+import { getCollectionData } from '@/lib/serverData';
 
 export const metadata = {
   title: 'موقعنا',
@@ -67,28 +66,22 @@ function extractLocationData(data) {
 
 async function getLocationData() {
   try {
-    const response = await fetch(`${getBaseUrl()}/api/data`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 86400 }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const result = await getCollectionData('location');
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في تحميل بيانات الموقع');
     }
-    
-    const data = await response.json();
-    const locationInfo = extractLocationData(data);
-    
+
+    // extractLocationData بتستنى شكل `{ location: [...] }` (زي رد /api/data
+    // القديم من غير collection)، فبنغلّف بيانات الكولكشن بنفس الشكل عشان
+    // نعيد استخدام نفس منطق الاستخراج من غير تعديل.
+    const locationInfo = extractLocationData({ location: result.data });
+
     if (!locationInfo) {
       throw new Error('No location data found');
     }
-    
+
     return locationInfo;
-    
+
   } catch (error) {
     console.error('Server error:', error);
     return null;

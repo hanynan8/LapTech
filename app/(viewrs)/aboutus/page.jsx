@@ -1,10 +1,9 @@
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
 // app/about/page.js (Server Component)
 
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل self-fetch لـ
+// /api/data من غير collection، اللي كان بيجيب قاعدة البيانات كاملة (كل
+// فئات المنتجات) بس عشان ياخد نص صفحة "من نحن".
+import { getCollectionData } from '@/lib/serverData';
 import AboutUsClient from './_clientServer';
 
 export const metadata = {
@@ -20,29 +19,38 @@ export const metadata = {
   }
 };
 
+export const revalidate = 86400;
+
+// المستند في قاعدة البيانات متداخل بشكل غريب (aboutus.aboutus.aboutus...)
+// عدة مستويات - بندور جوه المستوى المتداخل لحد ما نلاقي الأوبجيكت اللي
+// فيه المحتوى الفعلي (بيتعرف بوجود hero/story/mission) بدل ما نفترض
+// عدد ثابت من المستويات.
+function unwrapAboutData(node, depth = 0) {
+  if (!node || typeof node !== 'object' || depth > 10) return null;
+  if (node.hero || node.story || node.mission) return node;
+  if (Array.isArray(node.aboutus) && node.aboutus.length > 0) {
+    return unwrapAboutData(node.aboutus[0], depth + 1);
+  }
+  return null;
+}
+
 // Fetch data function with revalidation
 async function getAboutData() {
   try {
-    const response = await fetch(`${getBaseUrl()}/api/data`, {
-      next: { 
-        revalidate: 86400 // Revalidate every hour
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const result = await getCollectionData('aboutus');
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في تحميل بيانات الصفحة');
     }
-    
-    const data = await response.json();
-    
-    if (data.aboutus && data.aboutus.length > 0) {
-      return data.aboutus[0].aboutus[0].aboutus[0];
-    } else {
+
+    const docs = result.data;
+    const firstDoc = Array.isArray(docs) ? docs[0] : docs;
+    const content = unwrapAboutData(firstDoc);
+
+    if (!content) {
       throw new Error('لا توجد بيانات متاحة');
     }
+
+    return content;
   } catch (error) {
     console.error('Error fetching about data:', error);
     throw error;

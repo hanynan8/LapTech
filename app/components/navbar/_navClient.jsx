@@ -31,12 +31,12 @@ export default function Navbar({ navbarData }) {
 
   const dynamicPrefixes = [
     '/laptop/',
-    '/accessoires/',
+    '/accessories/',
     '/component/',
     '/monitors/',
     '/other/',
     '/pc-builds/',
-    '/post/',
+    '/pos/',
     '/printers/',
     '/storage-devices/',
   ];

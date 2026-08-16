@@ -1,10 +1,9 @@
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
 // app/contact/page.js (Server Component)
 
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل self-fetch لـ
+// /api/data من غير collection، اللي كان بيجيب قاعدة البيانات كاملة (كل
+// فئات المنتجات) بس عشان ياخد بيانات صفحة "اتصل بنا" الصغيرة.
+import { getCollectionData } from '@/lib/serverData';
 import ContactClient from './_clientServer';
 
 export const metadata = {
@@ -24,29 +23,24 @@ export const metadata = {
   }
 };
 
-// Fetch contact data with revalidation
+export const revalidate = 86400;
+
+// Fetch contact data directly from the DB
 async function getContactData() {
   try {
-    const response = await fetch(`${getBaseUrl()}/api/data`, {
-      next: { 
-        revalidate: 86400 // Revalidate every 30 minutes (contact info changes more frequently)
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const result = await getCollectionData('contact');
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في تحميل بيانات الاتصال');
     }
-    
-    const data = await response.json();
-    
-    if (data.contact && data.contact.length > 0) {
-      return data.contact[0];
-    } else {
+
+    const docs = result.data;
+    const contactDoc = Array.isArray(docs) ? docs[0] : docs;
+
+    if (!contactDoc) {
       throw new Error('لا توجد بيانات اتصال متاحة');
     }
+
+    return contactDoc;
   } catch (error) {
     console.error('Error fetching contact data:', error);
     throw error;

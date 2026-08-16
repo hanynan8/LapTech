@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import AddToCartButton from '../../_addToTheCart'; // Adjust the path based on your project structure
 // بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل HTTP self-fetch
-// لـ /api/data الخاص بنفس السيرفر - الـ self-fetch كان بيعتمد على تخمين
-// رابط السيرفر (getBaseUrl) وكان بيفشل بصمت لو التخمين غلط، وده اللي كان
-// بيوقع كل صفحات التفاصيل على notFound().
+// لـ /api/data الخاص بنفس السيرفر. الملف ده كان بينادي دالة `getBaseUrl()`
+// من غير ما تكون متعرّفة أو متعمول لها import في الملف أصلاً - يعني كل
+// طلب كان بيرمي خطأ فوري (ReferenceError)، بيتلقط في الـ try/catch،
+// فترجع بيانات المنتج null دايمًا، وده كان بيوقع صفحة تفاصيل أي طابعة
+// على notFound() مهما كان الـ id صحيح.
 import { getCollectionData } from '@/lib/serverData';
 
 const COLLECTION = 'printers';
@@ -355,17 +357,9 @@ export default async function ProductDetailsPage({ params }) {
   // جلب المنتج الرئيسي مع تحسينات
   async function fetchProductById(id) {
     try {
-      const res = await fetch(
-        `${getBaseUrl()}/api/data?collection=printers&id=${id}`,
-        { 
-          next: { revalidate: 86000 },
-          signal: AbortSignal.timeout(8000)
-        }
-      );
-      
-      if (!res.ok) return null;
-      
-      const data = await res.json();
+      const result = await getCollectionData(COLLECTION, { id });
+      if (!result.success) return null;
+      const data = result.data;
       return Array.isArray(data) && data.length > 0 ? data[0] : data || null;
     } catch (error) {
       console.error('خطأ في جلب بيانات المنتج:', error);

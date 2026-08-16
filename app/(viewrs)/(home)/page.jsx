@@ -2,11 +2,13 @@
 import { Suspense } from 'react';
 import HomePage from './_clientServer';
 import { Loader } from 'lucide-react';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+// بنقرأ من قاعدة البيانات مباشرة (getCollectionData) بدل self-fetch لـ
+// /api/data. الصفحة الرئيسية دي أعلى صفحة زيارات في الموقع، وكانت بتعمل
+// 5 رحلات HTTP self-fetch منفصلة على كل تحميل: واحدة لبيانات الصفحة
+// الرئيسية (بجيب قاعدة البيانات كاملة من غير collection filter!) +
+// 4 تانيين متوازيين لكل فئة منتجات مميزة. دلوقتي كلهم بيقروا من قاعدة
+// البيانات مباشرة (ومن نفس الكاش المشترك اللي صفحات الفئات نفسها بتستخدمه).
+import { getCollectionData } from '@/lib/serverData';
 
 // ISR Configuration - revalidate every hour (3600 seconds)
 export const revalidate = 86400;
@@ -30,33 +32,18 @@ export const metadata = {
 
 // Server function to fetch initial data
 async function getHomeData() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${getBaseUrl()}/api/data`;
-  
   try {
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      // Next.js fetch with ISR
-      next: { 
-        revalidate: 86400,
-        tags: ['home-data']
-      }
-    });
-
-    if (!response.ok) {
-      console.error(`API Error: ${response.status} ${response.statusText}`);
+    const result = await getCollectionData('home');
+    if (!result.success) {
+      console.error(`getCollectionData(home) failed: ${result.error}`);
       return null;
     }
 
-    const data = await response.json();
-    
     // Extract home data
+    const data = result.data;
     let homeData = null;
-    if (data.home && Array.isArray(data.home) && data.home.length > 0) {
-      homeData = data.home[0];
+    if (Array.isArray(data) && data.length > 0) {
+      homeData = data[0];
     }
 
     return {
@@ -72,39 +59,24 @@ async function getHomeData() {
 
 // Server function to fetch featured products from all categories
 async function getFeaturedProducts() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${getBaseUrl()}/api/data`;
-  
   const categories = [
-    'accessories', 'laptop', 'monitors', 'component', 
+    'accessories', 'laptop', 'monitors', 'component',
     'other', 'pc-builds', 'pos', 'printers', 'storage-devices'
   ];
 
   try {
-    // Fetch featured products from multiple categories in parallel
+    // Fetch featured products from multiple categories in parallel - كلهم
+    // بيقروا من نفس الكاش المشترك في lib/serverData.js بدل ما كل واحد
+    // يعمل رحلة HTTP منفصلة لنفس السيرفر.
     const promises = categories.slice(0, 4).map(async (category) => {
       try {
-        const response = await fetch(`${apiUrl}?collection=${category}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          },
-          next: { 
-            revalidate: 3600,
-            tags: [`category-${category}`]
-          }
-        });
+        const result = await getCollectionData(category);
+        if (!result.success) return { category, products: [] };
 
-        if (!response.ok) return { category, products: [] };
-
-        const result = await response.json();
-        
+        const data = result.data;
         let products = [];
-        if (Array.isArray(result) && result.length > 0) {
-          if (result[0].products) {
-            products = result[0].products;
-          } else if (result[0].data && result[0].data.products) {
-            products = result[0].data.products;
-          }
+        if (Array.isArray(data) && data.length > 0 && data[0].products) {
+          products = data[0].products;
         }
 
         // Filter available products and get top 2
@@ -158,7 +130,10 @@ export default async function Home() {
     homeData: homeResult?.homeData || null,
     featuredProducts: featuredProducts || [],
     timestamp: homeResult?.timestamp || new Date().toISOString(),
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || `${getBaseUrl()}/api/data`
+    // ده بيتبعت للـ Client Component عشان يكمل يجيب باقي الفئات في
+    // المتصفح (اللي مش اتجابت هنا على السيرفر) - مسار نسبي كافي وآمن
+    // لطلبات نفس الأصل (same-origin) من المتصفح.
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || '/api/data'
   };
 
   return (

@@ -491,12 +491,6 @@ const ComputerComponentsClient = ({ initialData, error }) => {
     };
     window.addEventListener('storage', handleStorageChange);
 
-    // polling للمستخدمين المسجلين
-    let interval;
-    if (session) {
-      interval = setInterval(fetchCartCount, 10000);
-    }
-
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('productAddedToCart', handleProductAdded);
@@ -505,7 +499,6 @@ const ComputerComponentsClient = ({ initialData, error }) => {
         handleProductRemoved
       );
       window.removeEventListener('storage', handleStorageChange);
-      if (interval) clearInterval(interval);
     };
   }, [session]);
 

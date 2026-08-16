@@ -34,9 +34,13 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/profile/:path*", "/api/auth/signin", "/api/auth/AuthButtons/signin", '/profile', '/register', '/login', '/pay'],
+  matcher: [
+    "/profile/:path*",
+    "/pay/:path*",
+    "/login",
+    "/register",
+  ],
 };
-
 
 //###############################################
 //###############################################

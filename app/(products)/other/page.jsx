@@ -1,10 +1,6 @@
 // app/other-products/page.js - Server Component
 import OtherProductsClient from './_otherClient';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import { getCollectionData } from '@/lib/serverData';
 
 
 export const metadata = {
@@ -28,28 +24,14 @@ const OtherProductsPage = async () => {
   let error = null;
 
   try {
-    // جلب البيانات من الخادم
-    const response = await fetch(
-      `${getBaseUrl()}/api/data?collection=other`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        next: {
-          revalidate: 86000, // إعادة التحقق كل دقيقة
-        },
-      }
-    );
+    // قراءة مباشرة من قاعدة البيانات بدل fetch لنفس الـ API route
+    const result = await getCollectionData('other');
 
-    if (!response.ok) {
-      throw new Error(
-        `خطأ في الشبكة: ${response.status} - ${response.statusText}`
-      );
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في جلب البيانات');
     }
 
-    const apiData = await response.json();
+    const apiData = result.data;
 
     // معالجة البيانات
     let otherProductsData = null;

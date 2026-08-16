@@ -1,10 +1,6 @@
 // Server Code: app/accessories/page.tsx (No 'use client' - This is a Server Component)
 import AccessoriesClient from './_accessClient'; // Adjust path as needed
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import { getCollectionData } from '@/lib/serverData';
 
 // Metadata for SEO
 export const metadata = {
@@ -209,15 +205,12 @@ export default async function AccessoriesPage() {
   let error = null;
 
   try {
-    const response = await fetch(
-      `${getBaseUrl()}/api/data?collection=accessories`,{
-        next: { revalidate: 86000 } // 24 ساعة تقريباً
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // قراءة مباشرة من قاعدة البيانات بدل fetch لنفس الـ API route
+    const result = await getCollectionData('accessories');
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في جلب البيانات');
     }
-    const apiData = await response.json();
+    const apiData = result.data;
     data = transformApiData(apiData);
   } catch (err) {
     error = err.message;

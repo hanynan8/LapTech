@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 🔹 إعداد الصور
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.fbcdn.net' },
@@ -10,23 +9,21 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.googleusercontent.com' },
       { protocol: 'https', hostname: '**.cloudfront.net' },
       { protocol: 'https', hostname: '**.pravatar.cc' },
-      { protocol: 'https', hostname: '**.cdn*' }, // أي CDN عام
+      { protocol: 'https', hostname: '**.cdn*' },
       { protocol: 'https', hostname: 'via.placeholder.com' },
     ],
   },
 
-  // 🔹 تعطيل eslint في dev mode (يساعد على السرعة)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
-  // 🔹 تعطيل type checking في build (خليها في CI بس)
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // 🔹 تفعيل turbopack
   turbopack: {},
+
+  // 🔹 تعطيل الكاش بتاع turbopack عشان مشكلة lockfile على ويندوز (bug معروف حاليًا)
+  experimental: {
+    turbopackFileSystemCacheForDev: false,
+  },
 };
 
 export default nextConfig;

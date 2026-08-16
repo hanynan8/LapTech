@@ -1,9 +1,5 @@
 import POSClient from './_posClient';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import { getCollectionData } from '@/lib/serverData';
 
 // Metadata للصفحة
 export const metadata = {
@@ -56,28 +52,14 @@ export const metadata = {
 // دالة جلب البيانات من الخادم
 async function fetchPOSData() {
   try {
-    const response = await fetch(
-      `${getBaseUrl()}/api/data?collection=pos`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        next: {
-          revalidate: 86400, // تحديث كل 24 ساعة (ISR يومي)
-          tags: ['pos-data'], // للتحكم في إعادة التحديث (optional)
-        },
-      }
-    );
+    // قراءة مباشرة من قاعدة البيانات بدل fetch لنفس الـ API route
+    const result = await getCollectionData('pos');
 
-    if (!response.ok) {
-      throw new Error(
-        `خطأ في الشبكة: ${response.status} - ${response.statusText}`
-      );
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في جلب البيانات');
     }
 
-    const apiData = await response.json();
+    const apiData = result.data;
 
     // أثناء التطوير فقط اطبع اللوجز
     if (process.env.NODE_ENV !== 'production') {

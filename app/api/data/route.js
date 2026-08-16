@@ -4,6 +4,14 @@ import mongoose from "mongoose";
 // ✅ NextAuth v5: مفيش getServerSession ولا authOptions خالص.
 // بنستورد دالة auth() جاهزة من ملف الإعداد بتاعك مباشرة.
 import { auth } from "@/app/api/auth/[...nextauth]/auth";
+import {
+  connectToMongo,
+  getModelForCollection,
+  listCollectionsCached,
+  invalidateCollectionsCache,
+  getCollectionData,
+  getAllCollectionsData,
+} from "@/lib/serverData";
 
 // ============================================================
 //  SECURITY CONFIG
@@ -76,47 +84,14 @@ async function authenticateWrite(request) {
 
 // ============================================================
 //  MONGO CONNECTION
+//  (connectToMongo / getModelForCollection / listCollectionsCached now
+//   live in lib/serverData.js so Server Components can call them directly
+//   instead of round-tripping through this HTTP route - see that file for
+//   details on why. listCollectionsCached() also caches the result for a
+//   few minutes instead of hitting Mongo's listCollections() on every call.)
 // ============================================================
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) console.warn("Warning: MONGO_URI not defined in environment");
-
-if (!globalThis._mongo) globalThis._mongo = { conn: null, promise: null };
-if (!globalThis._mongoModels) globalThis._mongoModels = {};
-
-async function connectToMongo() {
-  if (globalThis._mongo.conn) return globalThis._mongo.conn;
-  if (!MONGO_URI) throw new Error("Please set MONGO_URI environment variable");
-
-  if (!globalThis._mongo.promise) {
-    globalThis._mongo.promise = mongoose.connect(MONGO_URI).then((m) => m);
-  }
-
-  globalThis._mongo.conn = await globalThis._mongo.promise;
-  return globalThis._mongo.conn;
-}
-
-const schema = new mongoose.Schema({}, { strict: false });
-
-function normalizeModelName(name) {
-  return `Model_${String(name).replace(/[^a-zA-Z0-9]/g, "_")}`;
-}
-
-function getModelForCollection(collectionName) {
-  const name = String(collectionName);
-  if (globalThis._mongoModels[name]) return globalThis._mongoModels[name];
-
-  const modelName = normalizeModelName(name);
-  const Model =
-    mongoose.models[modelName] || mongoose.model(modelName, schema, name);
-  globalThis._mongoModels[name] = Model;
-  return Model;
-}
-
-async function listCollections() {
-  await connectToMongo();
-  const cols = await mongoose.connection.db.listCollections().toArray();
-  return cols.map((c) => c.name).filter((n) => !n.startsWith("system."));
-}
 
 // ============================================================
 //  ALLOWLIST — بس الـ collections دي مسموح يتكتب فيها.
@@ -163,44 +138,31 @@ export async function GET(request) {
   if (!authCheck.ok) return jsonResponse({ error: authCheck.error }, authCheck.status);
 
   try {
-    await connectToMongo();
     const { collection, id } = getSearchParams(request);
 
     if (!collection) {
-      const colNames = (await listCollections()).filter(
-        (name) => !RESTRICTED_COLLECTIONS.includes(name)
-      );
-      const results = await Promise.all(
-        colNames.map((name) => getModelForCollection(name).find({}))
-      );
-      const payload = colNames.reduce((acc, name, idx) => {
-        acc[name] = results[idx];
-        return acc;
-      }, {});
+      const payload = await getAllCollectionsData();
       return jsonResponse(payload, 200);
     }
 
-    const colName = String(collection);
+    // Single DB round trip: no more listCollections() existence check
+    // before the actual query. A query against a collection that doesn't
+    // exist yet just returns [] / not-found, which is the correct
+    // behaviour anyway - and it's one Mongo call instead of two.
+    const result = await getCollectionData(collection, { id });
 
-    if (RESTRICTED_COLLECTIONS.includes(colName)) {
-      return jsonResponse({ error: `Access to '${colName}' is not allowed` }, 403);
+    if (!result.success) {
+      const status = /not allowed/.test(result.error)
+        ? 403
+        : /not found/i.test(result.error)
+        ? 404
+        : /Invalid id/.test(result.error)
+        ? 400
+        : 500;
+      return jsonResponse({ error: result.error }, status);
     }
 
-    const existingCols = await listCollections();
-    if (!existingCols.includes(colName))
-      return jsonResponse({ error: `Collection '${colName}' not found` }, 404);
-
-    const Model = getModelForCollection(colName);
-
-    if (id) {
-      if (!mongoose.Types.ObjectId.isValid(id))
-        return jsonResponse({ error: "Invalid id format" }, 400);
-      const doc = await Model.findById(id);
-      if (!doc) return jsonResponse({ error: "Document not found" }, 404);
-      return jsonResponse(doc, 200);
-    }
-
-    return jsonResponse(await Model.find({}), 200);
+    return jsonResponse(result.data, 200);
   } catch (err) {
     console.error(err);
     return jsonResponse({ error: "Internal server error" }, 500);
@@ -235,6 +197,7 @@ export async function POST(request) {
       ? await Model.insertMany(body)
       : await Model.create(body);
 
+    invalidateCollectionsCache();
     return jsonResponse(created, 201);
   } catch (err) {
     console.error(err);
@@ -263,7 +226,7 @@ export async function PUT(request) {
       return jsonResponse({ error: `Writing to '${colName}' is not allowed` }, 403);
     }
 
-    const existingCols = await listCollections();
+    const existingCols = await listCollectionsCached();
     if (!existingCols.includes(colName))
       return jsonResponse({ error: "Collection not found" }, 404);
 
@@ -307,7 +270,7 @@ export async function DELETE(request) {
       return jsonResponse({ error: `Writing to '${colName}' is not allowed` }, 403);
     }
 
-    const existingCols = await listCollections();
+    const existingCols = await listCollectionsCached();
     if (!existingCols.includes(colName))
       return jsonResponse({ error: "Collection not found" }, 404);
 

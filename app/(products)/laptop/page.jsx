@@ -1,12 +1,8 @@
 // app/laptop/page.js (Server Component)
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
 import React from 'react';
 import ProductsClient from './_lapClient';
 import BrettyButton from './brettybtn';
+import { getCollectionData } from '@/lib/serverData';
 
 export const metadata = {
   title: 'اللابتوبات',
@@ -27,17 +23,18 @@ export const metadata = {
 // Server Component - يتم تشغيله على الخادم
 async function fetchProductsData() {
   try {
-    const response = await fetch(`${getBaseUrl()}/api/data?collection=laptop`, {
-      next: { revalidate: 86000 } // 24 ساعة تقريباً
-    });
-    
-    if (!response.ok) {
-      throw new Error('فشل في جلب البيانات');
+    // بنقرأ من قاعدة البيانات مباشرة بدل ما الـ Server Component يعمل
+    // HTTP fetch لنفس السيرفر بتاعه (كان بيسبب رحلة شبكة إضافية كاملة
+    // على كل تنقل بين الصفحات، وده كان السبب الرئيسي في البطء).
+    const result = await getCollectionData('laptop');
+
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في جلب البيانات');
     }
-    
-    const apiData = await response.json();
-    
-    // الاستجابة دلوقتي مصفوفة مباشرة (لأن الطلب بقى بـ ?collection=laptop)
+
+    const apiData = result.data;
+
+    // الاستجابة دلوقتي مصفوفة مباشرة (لأن الطلب بقى بـ collection=laptop)
     if (Array.isArray(apiData) && apiData.length > 0) {
       return {
         success: true,

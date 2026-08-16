@@ -7,7 +7,7 @@ import Footer from './_footClient';
 import { getCollectionData } from '@/lib/serverData';
 
 // ISR revalidation period (in seconds) for the page
-export const revalidate = 86400;
+export const revalidate = 60;
 
 const FALLBACK_FOOTER_DATA = {
   company: {

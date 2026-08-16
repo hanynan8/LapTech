@@ -19,7 +19,7 @@ export const metadata = {
   }
 };
 
-export const revalidate = 86400;
+export const revalidate = 60;
 
 // المستند في قاعدة البيانات متداخل بشكل غريب (aboutus.aboutus.aboutus...)
 // عدة مستويات - بندور جوه المستوى المتداخل لحد ما نلاقي الأوبجيكت اللي

@@ -11,7 +11,7 @@ import { Loader } from 'lucide-react';
 import { getCollectionData } from '@/lib/serverData';
 
 // ISR Configuration - revalidate every hour (3600 seconds)
-export const revalidate = 86400;
+export const revalidate = 60;
 
 // Metadata for SEO
 export const metadata = {

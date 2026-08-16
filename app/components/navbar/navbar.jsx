@@ -2,7 +2,7 @@ import Navbar from './_navClient';
 import { getCollectionData } from '@/lib/serverData';
 
 // ISR revalidation period (in seconds) for the page
-export const revalidate = 86400;
+export const revalidate = 60;
 
 // جلب بيانات الـ navbar مباشرة من قاعدة البيانات بدل HTTP self-fetch
 // لـ /api/data بدون فلتر (اللي كان بيجيب قاعدة البيانات كاملة!). الـ

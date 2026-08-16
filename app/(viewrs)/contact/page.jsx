@@ -23,7 +23,7 @@ export const metadata = {
   }
 };
 
-export const revalidate = 86400;
+export const revalidate = 60;
 
 // Fetch contact data directly from the DB
 async function getContactData() {

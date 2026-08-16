@@ -1,45 +1,26 @@
 import Navbar from './_navClient';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import { getCollectionData } from '@/lib/serverData';
 
 // ISR revalidation period (in seconds) for the page
 export const revalidate = 86400;
 
-// Fetch navbar data from API
+// جلب بيانات الـ navbar مباشرة من قاعدة البيانات بدل HTTP self-fetch
+// لـ /api/data بدون فلتر (اللي كان بيجيب قاعدة البيانات كاملة!). الـ
+// Navbar ده موجود في الـ layout الرئيسي، يعني بيترندر مع كل صفحة في
+// الموقع - فالـ self-fetch القديم كان معناه "رحلة HTTP كاملة لجلب كل
+// حاجة" بتتكرر مع كل نقلة صفحة، وده كان بيبطّئ الموقع كله مش بس صفحات
+// المنتجات.
 async function fetchNavbarData() {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const result = await getCollectionData('navbar');
+    if (!result.success) return null;
 
-    const res = await fetch(`${getBaseUrl()}/api/data`, {
-      signal: controller.signal,
-      next: { revalidate: 86400 }, // Revalidate API response every 3600 seconds
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    const json = await res.json();
-    if (json?.navbar && Array.isArray(json.navbar) && json.navbar.length > 0) {
-      return json.navbar[0];
-    } else if (json?.navbar && typeof json.navbar === 'object') {
-      return json.navbar;
-    }
-
-    // Fallback if data structure is unexpected
+    const data = result.data;
+    if (Array.isArray(data) && data.length > 0) return data[0];
+    if (data && typeof data === 'object') return data;
     return null;
   } catch (err) {
-    if (err.name === 'AbortError') {
-      console.error('Fetch timed out');
-    } else {
-      console.error('Error fetching navbar:', err);
-    }
+    console.error('Error fetching navbar:', err);
     return null;
   }
 }

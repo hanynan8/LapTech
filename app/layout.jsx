@@ -4,8 +4,15 @@ import Navbar from './components/navbar/navbar';
 import Footer from './components/footer/footer';
 import LayoutClient from './layoutClient';
 
-// Edge runtime
-export const runtime = 'edge';
+// ملحوظة أداء/توافق: كان هنا `export const runtime = 'edge';`
+// لكن شلناه لأن صفحات المنتجات بقت تستورد lib/serverData.js (اللي بيستخدم
+// mongoose) مباشرة جوه الـ Server Components، وmongoose محتاج Node.js APIs
+// مش متاحة في edge runtime - وده سبب الخطأ:
+//   "...mongoose/dist/browser.umd.js....default.connect is not a function"
+// (يعني Next.js حاول يبني نسخة المتصفح من mongoose عشان الصفحة كانت
+// هتتنفذ على edge). من غير السطر ده الصفحات كلها بترجع للـ Node.js
+// runtime الافتراضي، وهو نفس الرنتايم اللي app/api/data/route.js أصلاً
+// بيستخدمه مع mongoose من غير مشاكل.
 export const experimental = {
   appDir: true,
   serverComponentsExternalPackages: [],

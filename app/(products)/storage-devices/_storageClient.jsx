@@ -433,19 +433,13 @@ const ComputerComponentsClient = ({ initialData, error }) => {
   const fetchCartCount = async () => {
     try {
       if (session) {
-        const res = await fetch(
-          '/api/data?collection=carts'
-        );
+        // بدل ما نجيب كل الكارتس بتاعة كل المستخدمين ونفلتر في المتصفح،
+        // بنستخدم endpoint خفيف بيرجع عدد المنتجات بتاع اليوزر الحالي بس
+        // (السيرفر بيحدد الإيميل من الـ session، مش من الطلب).
+        const res = await fetch('/api/cart-count');
         if (res.ok) {
-          const data = await res.json();
-          const userCart = data.filter(
-            (item) => item.email === session.user.email
-          );
-          const count = userCart.reduce(
-            (sum, item) => sum + (item.quantity || 1),
-            0
-          );
-          setCartCount(count);
+          const { count } = await res.json();
+          setCartCount(count || 0);
         }
       } else {
         const localCart = JSON.parse(localStorage.getItem('cart')) || [];

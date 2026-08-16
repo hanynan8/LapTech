@@ -1,10 +1,6 @@
 // app/printers/page.js (Server Component)
 import PrintersClient from './_printersClient';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import { getCollectionData } from '@/lib/serverData';
 
 
 // تصدير metadata للصفحة
@@ -27,24 +23,14 @@ export const metadata = {
 
 async function fetchPrintersData() {
   try {
-    const response = await fetch(
-      `${getBaseUrl()}/api/data?collection=printers`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        cache: 'no-store', // للحصول على أحدث البيانات
-        next: { revalidate: 60 }, // إعادة التحقق كل 60 ثانية
-      }
-    );
+    // قراءة مباشرة من قاعدة البيانات بدل fetch لنفس الـ API route
+    const result = await getCollectionData('printers');
 
-    if (!response.ok) {
-      throw new Error(`خطأ في الشبكة: ${response.status} - ${response.statusText}`);
+    if (!result.success) {
+      throw new Error(result.error || 'فشل في جلب البيانات');
     }
 
-    const apiData = await response.json();
+    const apiData = result.data;
 
     // البحث عن بيانات الطابعات
     let printerData = null;
@@ -137,4 +123,3 @@ export default async function PrintersPage() {
 
   return <PrintersClient initialData={data} />;
 }
-

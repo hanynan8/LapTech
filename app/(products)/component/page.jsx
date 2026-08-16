@@ -35,26 +35,20 @@ async function fetchComponentsData() {
 
     const apiData = result.data;
 
-    // التعامل مع هياكل البيانات المختلفة
-    let processedData = null;
-    
-    if (Array.isArray(apiData)) {
-      const componentData = apiData.find(item => item.data || item.component);
-      if (componentData) {
-        processedData = componentData.data || componentData.component;
-      }
-    } else if (apiData.component) {
-      processedData = apiData.component;
-    } else if (apiData.data) {
-      processedData = apiData.data;
-    } else {
-      processedData = apiData;
-    }
-    
+    // الاستجابة عبارة عن مصفوفة فيها مستند واحد يحتوي مباشرة على
+    // pageTitle / categories / products (نفس شكل بيانات باقي الصفحات
+    // زي laptop و monitors)، مش متلفوف جوه مفتاح data أو component.
+    const processedData =
+      Array.isArray(apiData) && apiData.length > 0
+        ? apiData[0]
+        : apiData && typeof apiData === 'object'
+        ? apiData
+        : null;
+
     if (!processedData) {
       throw new Error('لا توجد بيانات للمكونات في الاستجابة');
     }
-    
+
     return processedData;
     
   } catch (error) {

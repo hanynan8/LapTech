@@ -104,19 +104,14 @@ export default function Navbar({ navbarData }) {
   const fetchCartCount = async () => {
     try {
       if (session) {
-        const res = await fetch(
-          'https://restaurant-back-end.vercel.app/api/data?collection=carts'
-        );
+        // ملحوظة: كان هنا رابط لمشروع تاني خالص (restaurant-back-end.vercel.app)
+        // - على الأغلب باقي من نسخ/لصق قالب، ومكنش بيرجع بيانات الكارت الصح
+        // أصلاً. استبدلته بالـ endpoint الخفيف اللي بيرجع عدد المنتجات بتاع
+        // اليوزر الحالي بس من نفس المشروع.
+        const res = await fetch('/api/cart-count');
         if (res.ok) {
-          const data = await res.json();
-          const userCart = data.filter(
-            (item) => item.email === session.user.email
-          );
-          const count = userCart.reduce(
-            (sum, item) => sum + (item.quantity || 1),
-            0
-          );
-          setCartCount(count);
+          const { count } = await res.json();
+          setCartCount(count || 0);
         }
       } else {
         const localCart = JSON.parse(localStorage.getItem('cart')) || [];

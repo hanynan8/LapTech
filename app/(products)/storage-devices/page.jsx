@@ -1,37 +1,25 @@
 // app/storage-devices/page.tsx - Server Component
 import { Suspense } from 'react';
 import StorageClient from './_storageClient';
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import { getCollectionData } from '@/lib/serverData';
 
 // Server-side data fetching
 async function getStorageData() {
   try {
-    const response = await fetch(
-      `${getBaseUrl()}/api/data`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        next: { revalidate: 86000 }, // Revalidate every hour
-      }
-    );
+    // قراءة مباشرة من قاعدة البيانات بدل fetch لكل الـ collections عن طريق
+    // /api/data (كان بيجيب كل المجموعات في المشروع علشان يستخدم واحدة بس)
+    const result = await getCollectionData('storage-devices');
 
-    if (!response.ok) {
-      throw new Error(`Network error: ${response.status}`);
+    if (!result.success) {
+      throw new Error(result.error || 'Network error');
     }
 
-    const apiData = await response.json();
+    const apiData = result.data;
 
     // Extract storage data
     let storageData = null;
-    if (apiData['storage-devices']?.[0]) {
-      storageData = apiData['storage-devices'][0];
+    if (Array.isArray(apiData) && apiData[0]) {
+      storageData = apiData[0];
     }
 
     // Process and structure data

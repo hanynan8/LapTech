@@ -9,8 +9,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.googleusercontent.com' },
       { protocol: 'https', hostname: '**.cloudfront.net' },
       { protocol: 'https', hostname: '**.pravatar.cc' },
-      { protocol: 'https', hostname: '**.cdn*' },
       { protocol: 'https', hostname: 'via.placeholder.com' },
+      { protocol: 'https', hostname: 'www.bhphotovideo.com' },
+      { protocol: 'https', hostname: '**.ebayimg.com' },
     ],
   },
 

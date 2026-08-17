@@ -15,6 +15,35 @@ import {
 } from 'lucide-react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
+// ملحوظة: خط "Great Vibes" لازم يتحمل مرة واحدة في app/layout.js زي كده:
+//
+// import { Great_Vibes } from 'next/font/google';
+// const greatVibes = Great_Vibes({
+//   subsets: ['latin'],
+//   weight: '400',
+//   variable: '--font-great-vibes',
+// });
+// <html lang="ar" className={greatVibes.variable}>
+//
+// وبعدين هنا بنستخدم المتغير CSS اللي هو --font-great-vibes مباشرة.
+
+// دالة مساعدة تقسم اسم الشركة لكلمتين وتنسق كل كلمة بحجم مختلف
+// الكلمة الأولى أكبر، والكلمة التانية (لو موجودة) أصغر.
+const renderLogoName = (name, sizeClasses = {}) => {
+  const words = name?.trim().split(' ') || [];
+  const firstWord = words[0] || '';
+  const secondWord = words.slice(1).join(' ');
+
+  return (
+    <span style={{ fontFamily: 'var(--font-great-vibes)' }}>
+      <span className={sizeClasses.first}>{firstWord}</span>
+      {secondWord && (
+        <span className={`${sizeClasses.second} mr-1`}>{secondWord}</span>
+      )}
+    </span>
+  );
+};
+
 export default function Navbar({ navbarData }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productsDropdownOpen, setProductsDropdownOpen] = useState(false);
@@ -127,10 +156,6 @@ export default function Navbar({ navbarData }) {
   };
 
   // تحديث حي: استماع للأحداث + polling
-  // في ملف Navbar.js - تحسين جزء تحديث عداد السلة
-
-  // استبدال الكود الحالي في useEffect بهذا الكود المحسن:
-
   useEffect(() => {
     // جلب العداد عند التحميل الأول
     fetchCartCount();
@@ -263,9 +288,12 @@ export default function Navbar({ navbarData }) {
             {/* Logo */}
             <div className="flex items-center">
               <h1
-                className={`text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}
+                className={`flex items-baseline bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}
               >
-                {companyName}
+                {renderLogoName(companyName, {
+                  first: 'text-2xl sm:text-3xl lg:text-4xl',
+                  second: 'text-base sm:text-lg lg:text-xl',
+                })}
               </h1>
             </div>
 
@@ -463,9 +491,12 @@ export default function Navbar({ navbarData }) {
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2
-                className={`text-xl font-bold bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}
+                className={`flex items-baseline bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}
               >
-                {companyName}
+                {renderLogoName(companyName, {
+                  first: 'text-xl',
+                  second: 'text-sm',
+                })}
               </h2>
               <button
                 onClick={closeSidebar}

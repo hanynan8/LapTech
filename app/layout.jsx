@@ -30,7 +30,13 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
   display: 'swap',
 });
+import { Amiri } from 'next/font/google';
 
+const amiri = Amiri({
+  subsets: ['arabic'],
+  weight: ['400', '700'],
+  variable: '--font-amiri',
+});
 // ----- METADATA (بدّل القيم هذه بالقيم الحقيقية لموقعك) -----
 export const metadata = {
   title: {
@@ -148,7 +154,7 @@ const structuredData = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning className={amiri.variable}>
       <body
         className={`${rubik.className} ${geistMono.variable} antialiased bg-white text-gray-900`}
       >

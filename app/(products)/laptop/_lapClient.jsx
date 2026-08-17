@@ -386,6 +386,7 @@ const ProductCard = React.memo(
 );
 
 // Pagination Component محسن للموبايل
+// Pagination Component محسن للموبايل
 const Pagination = ({
   currentPage,
   totalPages,
@@ -393,9 +394,18 @@ const Pagination = ({
   totalItems,
   itemsPerPage,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   const getPageNumbers = () => {
     const pages = [];
-    const maxVisiblePages = window.innerWidth < 640 ? 5 : 7; // أقل في الموبايل
+    const maxVisiblePages = isMobile ? 5 : 7; // أقل في الموبايل
 
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
@@ -473,7 +483,6 @@ const Pagination = ({
     </div>
   );
 };
-
 // Main Client Component
 const ProductsClient = ({ initialData, error }) => {
   // معالجة البيانات إذا كانت array
